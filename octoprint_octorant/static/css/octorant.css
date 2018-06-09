@@ -1,6 +1,6 @@
 /* TODO: Have your plugin's CSS files generated to here. */
 #settings_plugin_octorant .octorant_message{
-    background: #F7F7F7;
+    background: rgba(0,0,0,.1);
     border-radius: 10px;
     padding: 10px;
     margin-bottom: 10px;

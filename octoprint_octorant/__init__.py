@@ -135,8 +135,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		# core UI here.
 		return dict(
 			js=["js/octorant.js"],
-			css=["css/octorant.css"],
-			less=["less/octorant.less"]
+			css=["css/octorant.css"]
 		)
 
 
