@@ -1,6 +1,10 @@
-# OctoPrint-OctoRant 1.2.0
+# OctoPrint-OctoRant 1.2.1
 
 OctoRant is a plugin allowing Octoprint to send notifications to a Discord channel via a webhook URL. When wanted it can directly send a snapshot to Discord (without needing third-party services)
+
+## OctoRant is only a notifier!
+
+OctoRant is *one-way only*, from your printer to your Discord channel. This plugin **is not able** to receive commands for your printer from Discord. However a good fellow @cameroncros forked my plugin exactly to add this feature. Feel free to try [DiscordRemote](https://plugins.octoprint.org/plugins/DiscordRemote/)
 
 License : MIT 
 
@@ -57,6 +61,15 @@ Here you can customize every message handled by Octorant.
     - `10%` means you'll receive a message at 10%, 20%, 30%, 40% ... 80%, 90% of the printing process.
     - `5%` means you'll receive a message at 5%, 10%, 15%, 20% ... 80%, 85%, 90%, 95% of the printing process.
     - etc...
+
+### Scripts Settings
+
+Octorant allows you to launch scripts everytime a message is sent:
+
+- Before sending: perfect for turning some LED on to ensure the webcam will always have enough light when taking the snapshot
+- After sending: perfect for turning the same LED off :)
+
+Script configuration was made voluntarily a little harder, as running scripts exposes much more the host computer. You can find more indications on the [wiki](https://github.com/bchanudet/OctoPrint-Octorant/wiki/Launching-scripts)
 
 
 ## Message format
