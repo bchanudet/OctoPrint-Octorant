@@ -283,39 +283,46 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		snapshot = None
 		snapshotUrl = self._settings.global_get(["webcam","snapshot"])
 		if 	withSnapshot and snapshotUrl is not None and "http" in snapshotUrl :
-			snapshotCall = requests.get(snapshotUrl)
+			try:
+				snapshotCall = requests.get(snapshotUrl)
 
-			# Get the settings used for streaming to know if we should transform the snapshot
-			mustFlipH = self._settings.global_get_boolean(["webcam","flipH"])
-			mustFlipV = self._settings.global_get_boolean(["webcam","flipV"])
-			mustRotate = self._settings.global_get_boolean(["webcam","rotate90"])
+				# Get the settings used for streaming to know if we should transform the snapshot
+				mustFlipH = self._settings.global_get_boolean(["webcam","flipH"])
+				mustFlipV = self._settings.global_get_boolean(["webcam","flipV"])
+				mustRotate = self._settings.global_get_boolean(["webcam","rotate90"])
 
-			# Only do something if we got the snapshot
-			if snapshotCall :
-				snapshotImage = BytesIO(snapshotCall.content)				
+				# Only do something if we got the snapshot
+				if snapshotCall :
+					snapshotImage = BytesIO(snapshotCall.content)				
 
-				# Only call Pillow if we need to transpose anything
-				if (mustFlipH or mustFlipV or mustRotate): 
-					img = Image.open(snapshotImage)
+					# Only call Pillow if we need to transpose anything
+					if (mustFlipH or mustFlipV or mustRotate): 
+						img = Image.open(snapshotImage)
 
-					self._logger.info("Transformations : FlipH={}, FlipV={} Rotate={}".format(mustFlipH, mustFlipV, mustRotate))
+						self._logger.info("Transformations : FlipH={}, FlipV={} Rotate={}".format(mustFlipH, mustFlipV, mustRotate))
 
-					if mustFlipH:
-						img = img.transpose(Image.FLIP_LEFT_RIGHT)
-					
-					if mustFlipV:
-						img = img.transpose(Image.FLIP_TOP_BOTTOM)
+						if mustFlipH:
+							img = img.transpose(Image.FLIP_LEFT_RIGHT)
+						
+						if mustFlipV:
+							img = img.transpose(Image.FLIP_TOP_BOTTOM)
 
-					if mustRotate:
-						img = img.transpose(Image.ROTATE_90)
+						if mustRotate:
+							img = img.transpose(Image.ROTATE_90)
 
-					newImage = BytesIO()
-					img.save(newImage,'png')			
+						newImage = BytesIO()
+						img.save(newImage,'png')			
 
-					snapshotImage = newImage	
+						snapshotImage = newImage	
 
 
-				snapshot = {'file': ("snapshot.png", snapshotImage.getvalue())}
+					snapshot = {'file': ("snapshot.png", snapshotImage.getvalue())}
+			except requests.ConnectionError:
+				snapshot = None
+				self._logger.error("{}: ConnectionError on: '{}'".format(eventID, snapshotUrl))
+			except requests.ConnectTimeout:
+				snapshot = None
+				self._logger.error("{}: ConnectTimeout on: '{}'".format(eventID, snapshotUrl))
 
 		# Send to Discord WebHook
 		discordCall = Hook(
