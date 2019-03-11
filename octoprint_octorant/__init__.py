@@ -238,6 +238,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			int(tmpConfig["step"]) == 0 \
 			or int(data["progress"]) == 0 \
 			or int(data["progress"]) % int(tmpConfig["step"]) != 0 \
+			or (int(data["progress"]) == 100) \
 		) :
 			return False			
 
