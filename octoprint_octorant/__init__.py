@@ -106,7 +106,6 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		
 	def on_after_startup(self):
 		self._logger.info("Octorant is started !")
-		self._logger.debug("TESTTTTTT")
 
 
 	##~~ SettingsPlugin mixin
@@ -246,6 +245,9 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
 			data["remaining"] = int(tmpDataFromPrinter["progress"]["printTimeLeft"])
 			data["remaining_formatted"] = str(timedelta(seconds=data["remaining"]))
+		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTime"] is not None:
+			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
+			data["spent_formatted"] = str(timedelta(seconds=data["spent"]))
 
 		return self.send_message(eventID, tmpConfig["message"].format(**data), tmpConfig["with_snapshot"])
 
