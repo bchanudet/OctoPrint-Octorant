@@ -232,12 +232,22 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
 
-		# Special case for progress eventID : we check for progress and stepss
+		# Special case for progress eventID : we check for progress and steps
 		if eventID == 'printing_progress' and (\
-			int(data["progress"]) == 0 \
+			int(tmpConfig["step"]) == 0 \
+			or int(data["progress"]) == 0 \
 			or int(data["progress"]) % int(tmpConfig["step"]) != 0 \
+			or (int(data["progress"]) == 100) \
 		) :
 			return False			
+
+		tmpDataFromPrinter = self._printer.get_current_data()
+		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
+			data["remaining"] = int(tmpDataFromPrinter["progress"]["printTimeLeft"])
+			data["remaining_formatted"] = str(timedelta(seconds=data["remaining"]))
+		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTime"] is not None:
+			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
+			data["spent_formatted"] = str(timedelta(seconds=data["spent"]))
 
 		return self.send_message(eventID, tmpConfig["message"].format(**data), tmpConfig["with_snapshot"])
 
@@ -258,7 +268,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		
 		# Finally exec the script
 		out = ""
-		self._logger.info("{}:{} File to start: '{}'".format(eventName, which, script_to_exec))
+		self._logger.debug("{}:{} File to start: '{}'".format(eventName, which, script_to_exec))
 
 		try:
 			if script_to_exec is not None and len(script_to_exec) > 0 and os.path.exists(script_to_exec):
@@ -266,7 +276,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		except (OSError, subprocess.CalledProcessError) as err:
 				out = err
 		finally:
-			self._logger.info("{}:{} > Output: '{}'".format(eventName, which, out))
+			self._logger.debug("{}:{} > Output: '{}'".format(eventName, which, out))
 			return out
 
 

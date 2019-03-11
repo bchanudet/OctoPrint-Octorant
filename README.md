@@ -1,4 +1,4 @@
-# OctoPrint-OctoRant 1.2.1
+# OctoPrint-OctoRant 1.2.2
 
 OctoRant is a plugin allowing Octoprint to send notifications to a Discord channel via a webhook URL. When wanted it can directly send a snapshot to Discord (without needing third-party services)
 
@@ -118,6 +118,10 @@ Some events also support variables, here is a basic list :
 
 **Printing progress event** :
 - `{progress}` : progress in % of the print.
+- `{spent}`: time spent since the start of the print (in seconds)
+- `{spent_formatted}` : same as `{spent}`, but in a human-readable format (`HH:MM:SS`)
+- `{remaining}`: time remaining until the end of the print (in seconds)
+- `{remaining_formatted}` : same as `{remaining}`, but in a human-readable format (`HH:MM:SS`)
 
 **Printer state : error**
 - `{error}` : The error received 
