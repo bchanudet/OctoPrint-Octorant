@@ -4,11 +4,13 @@
 
 import json
 import requests
+from threading import Thread
 
 
-class Hook():
+class Hook(Thread):
 
     def __init__(self, url, message, username="", avatar="", attachment=None):
+        Thread.__init__(self)
         self.url = url
         self.message = message
         self.username = username
@@ -23,7 +25,7 @@ class Hook():
             'avatar_url' : self.avatar
         }
 
-    def post(self):
+    def run(self):
         self.format()
 
         resp = requests.post(self.url,files=self.attachment,data=self.payload)
