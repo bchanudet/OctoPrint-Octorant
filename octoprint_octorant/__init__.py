@@ -249,7 +249,16 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
 			data["spent_formatted"] = str(timedelta(seconds=data["spent"]))
 
-		return self.send_message(eventID, tmpConfig["message"].format(**data), tmpConfig["with_snapshot"])
+		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
+		try:
+			message = tmpConfig["message"].format(**data)
+		except KeyError as error:
+			message = tmpConfig["message"] + \
+				"""\r\n:sos: **Octorant Warning**""" + \
+				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
+				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
+		finally:
+			return self.send_message(eventID, message, tmpConfig["with_snapshot"])
 
 	def exec_script(self, eventName, which=""):
 
