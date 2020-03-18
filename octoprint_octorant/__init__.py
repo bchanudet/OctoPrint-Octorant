@@ -58,7 +58,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				"name" : "Printing process : started",
 				"enabled" : True,
 				"with_snapshot": True,
-				"message" : "🖨️ I've started printing {file}"
+				"message" : "🖨️ I've started printing **{name}**"
 			},
 			"printing_paused":{
 				"name" : "Printing process : paused",
