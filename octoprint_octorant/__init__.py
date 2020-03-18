@@ -343,7 +343,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			snapshot
 		)		
 
-		out = discordCall.post()
+		out = discordCall.start()
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
