@@ -58,7 +58,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				"name" : "Printing process : started",
 				"enabled" : True,
 				"with_snapshot": True,
-				"message" : "🖨️ I've started printing {file}"
+				"message" : "🖨️ I've started printing **{name}**"
 			},
 			"printing_paused":{
 				"name" : "Printing process : paused",
@@ -249,7 +249,16 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
 			data["spent_formatted"] = str(timedelta(seconds=data["spent"]))
 
-		return self.send_message(eventID, tmpConfig["message"].format(**data), tmpConfig["with_snapshot"])
+		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
+		try:
+			message = tmpConfig["message"].format(**data)
+		except KeyError as error:
+			message = tmpConfig["message"] + \
+				"""\r\n:sos: **Octorant Warning**""" + \
+				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
+				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
+		finally:
+			return self.send_message(eventID, message, tmpConfig["with_snapshot"])
 
 	def exec_script(self, eventName, which=""):
 
@@ -343,7 +352,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			snapshot
 		)		
 
-		out = discordCall.post()
+		out = discordCall.start()
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
@@ -354,6 +363,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
 __plugin_name__ = "OctoRant"
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
 	global __plugin_implementation__

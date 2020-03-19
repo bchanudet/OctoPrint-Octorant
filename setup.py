@@ -14,7 +14,7 @@ plugin_package = "octoprint_octorant"
 plugin_name = "OctoPrint-Octorant"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.2.2"
+plugin_version = "1.2.3"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -33,7 +33,7 @@ plugin_url = "https://github.com/bchanudet/OctoPrint-Octorant"
 plugin_license = "MIT"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["Pillow==5.0.0"]
+plugin_requires = ["Pillow>=5"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
