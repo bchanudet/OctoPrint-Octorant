@@ -105,7 +105,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		}
 		
 	def on_after_startup(self):
-		self._logger.info("Octorant is started !")
+		self._logger.info("OctoRant is started !")
 
 
 	##~~ SettingsPlugin mixin
@@ -153,7 +153,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		# for details.
 		return dict(
 			octorant=dict(
-				displayName="Octorant Plugin",
+				displayName="OctoRant Plugin",
 				displayVersion=self._plugin_version,
 
 				# version check: github repository
@@ -261,7 +261,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			message = tmpConfig["message"].format(**data)
 		except KeyError as error:
 			message = tmpConfig["message"] + \
-				"""\r\n:sos: **Octorant Warning**""" + \
+				"""\r\n:sos: **OctoRant Warning**""" + \
 				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
 				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
 		finally:

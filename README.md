@@ -45,14 +45,14 @@ The plugin can be configured in the configuration panel, under the "Octorant" pa
 ### Discord Settings
 
 - WebHook URL : please follow the Setup procedure to retrieve the URL of the WebHook.
-- Bot name : You can override the name you put on the WebHook description in Discord by a name. Useful if the webhook is not specific to Octorant and also used for other things.
+- Bot name : You can override the name you put on the WebHook description in Discord by a name. Useful if the webhook is not specific to OctoRant and also used for other things.
 - Bot Avatar URL : You can also override the avatar us put in Discord for the WebHook. The URL needs to be globally accessible (it will be retrieved by Discord's servers).
 
 In order for you to be sure these settings work, every time you change one of them, a test message will be sent to the corresponding Discord Channel. If you don't receive it, something is most likely wrong!
 
 ### Message Settings
 
-Here you can customize every message handled by Octorant.
+Here you can customize every message handled by OctoRant.
 
 - **Toggle the message** : by unchecking the checkbox in front of the message title, you can disable the message. It won't be sent to Discord.
 - **Message** : you can change the default content here. See the section [Message format](#message-format) for more information.
