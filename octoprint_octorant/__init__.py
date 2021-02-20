@@ -232,6 +232,13 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
 
+		# Setup default values
+		data.setdefault("progress",0)
+		data.setdefault("remaining",0)
+		data.setdefault("remaining_formatted","0s")
+		data.setdefault("spent",0)
+		data.setdefault("spent_formatted","0s")
+
 		# Special case for progress eventID : we check for progress and steps
 		if eventID == 'printing_progress' and (\
 			int(tmpConfig["step"]) == 0 \
