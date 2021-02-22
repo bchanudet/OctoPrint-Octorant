@@ -1,16 +1,17 @@
 # coding=utf-8
 from __future__ import absolute_import
-from .discord import Hook
 
 import json
 import octoprint.plugin
 import octoprint.settings
 import requests
+import subprocess
+import os
+
 from datetime import timedelta
 from PIL import Image
 from io import BytesIO
-import subprocess
-import os
+from .discord import DiscordMessage
 
 
 class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
@@ -346,12 +347,9 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			except requests.ConnectionError:
 				snapshot = None
 				self._logger.error("{}: ConnectionError on: '{}'".format(eventID, snapshotUrl))
-			except requests.ConnectTimeout:
-				snapshot = None
-				self._logger.error("{}: ConnectTimeout on: '{}'".format(eventID, snapshotUrl))
 
 		# Send to Discord WebHook
-		discordCall = Hook(
+		discordMsg = DiscordMessage(
 			self._settings.get(["url"], merged=True),
 			message,
 			self._settings.get(["username"],merged=True),
@@ -359,12 +357,12 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			snapshot
 		)		
 
-		out = discordCall.start()
+		discordMsg.start()
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
 
-		return out
+		return True
 		
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that

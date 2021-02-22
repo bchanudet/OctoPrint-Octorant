@@ -7,7 +7,7 @@ import requests
 from threading import Thread
 
 
-class Hook(Thread):
+class DiscordMessage(Thread):
 
     def __init__(self, url, message, username="", avatar="", attachment=None):
         Thread.__init__(self)
@@ -15,20 +15,24 @@ class Hook(Thread):
         self.message = message
         self.username = username
         self.avatar = avatar
-        self.attachment = attachment
-        self.payload = {}
+        self.file = attachment
 
-    def format(self):
-        self.payload = {
+    def set_file(self, filename, content):
+        self.file = {'file': (filename, content)}
+
+    def run(self):
+        payload = {
             'content': self.message,
             'username' : self.username,
             'avatar_url' : self.avatar
         }
 
-    def run(self):
-        self.format()
+        resp = requests.post(
+            self.url,
+            files=self.file,
+            data=payload
+        )
 
-        resp = requests.post(self.url,files=self.attachment,data=self.payload)
         if resp:
             return True
         else:
