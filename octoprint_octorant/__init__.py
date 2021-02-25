@@ -11,8 +11,10 @@ import os
 from datetime import timedelta
 from PIL import Image
 from io import BytesIO
+
 from .discord import DiscordMessage
 from .events import EVENTS, CATEGORIES
+from .media import Media
 
 
 class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
@@ -231,50 +233,11 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		
 		# Get snapshot if asked for
 		snapshot = None
-		snapshotUrl = self._settings.global_get(["webcam","snapshot"])
-		if 	withSnapshot and snapshotUrl is not None and "http" in snapshotUrl :
-			try:
-				snapshotCall = requests.get(snapshotUrl)
 
-				# Get the settings used for streaming to know if we should transform the snapshot
-				mustFlipH = self._settings.global_get_boolean(["webcam","flipH"])
-				mustFlipV = self._settings.global_get_boolean(["webcam","flipV"])
-				mustRotate = self._settings.global_get_boolean(["webcam","rotate90"])
-
-				# Only do something if we got the snapshot
-				if snapshotCall :
-					snapshotImage = BytesIO(snapshotCall.content)				
-
-					# Only call Pillow if we need to transpose anything
-					if (mustFlipH or mustFlipV or mustRotate): 
-						img = Image.open(snapshotImage)
-
-						self._logger.info("Transformations : FlipH={}, FlipV={} Rotate={}".format(mustFlipH, mustFlipV, mustRotate))
-
-						if mustFlipH:
-							img = img.transpose(Image.FLIP_LEFT_RIGHT)
-						
-						if mustFlipV:
-							img = img.transpose(Image.FLIP_TOP_BOTTOM)
-
-						if mustRotate:
-							img = img.transpose(Image.ROTATE_90)
-
-						newImage = BytesIO()
-						img.save(newImage,'png')			
-
-						snapshotImage = newImage	
-
-
-					snapshot = {'file': ("snapshot.png", snapshotImage.getvalue())}
-					
-			except requests.ConnectTimeout:
-				snapshot = None
-				self._logger.error("{}: ConnectTimeout on: '{}'".format(eventID, snapshotUrl))
-			except requests.ConnectionError:
-				snapshot = None
-				self._logger.error("{}: ConnectionError on: '{}'".format(eventID, snapshotUrl))
-
+		if withSnapshot:
+			media = Media(self._settings, self._logger)
+			snapshot = media.grab_snapshot()
+			
 		# Send to Discord WebHook
 		discordMsg = DiscordMessage(
 			self._settings.get(["url"], merged=True),
