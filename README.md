@@ -77,7 +77,9 @@ Script configuration was made voluntarily a little harder, as running scripts ex
 Messages are regular Discord messages, which means you can use :
 - `**markdown**` format (see [Discord Documentation](https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-))
 - `:emoji:` shortcuts to display emojis
-- `@mentions` to notify someone
+- `<@!#################>` to notify someone with a Discord unique ID
+  - The unique ID can be found by typing `\@yourhandle#1234` into a Discord channel
+  - Per [this comment from](https://github.com/bchanudet/OctoPrint-Octorant/issues/43#issuecomment-634155718) [KipLandwehr](https://github.com/KipLandwehr)
 
 Some events also support variables, here is a basic list : 
 
