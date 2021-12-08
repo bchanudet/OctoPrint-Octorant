@@ -240,7 +240,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			int(tmpConfig["step"]) == 0 \
 			or int(data["progress"]) == 0 \
 			or int(data["progress"]) % int(tmpConfig["step"]) != 0 \
-			or (datetime.now()-self.lastNotificationTimestamp).total_seconds()/60 < int(tmpConfig["timeStep"]) \
+			or (datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 < int(tmpConfig["timeStep"]) \
 			or (int(data["progress"]) == 100) \
 		) :
 			return False
@@ -358,7 +358,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 
 		out = discordCall.start()
 
-		self.lastNotificationTimestamp = datetime.now()
+		self.lastNotificationTimestamp = datetime.now(timezone.utc)
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
