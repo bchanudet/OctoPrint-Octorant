@@ -2,10 +2,10 @@
 from __future__ import absolute_import
 from .discord import Hook
 
-import json
 import octoprint.plugin
 import octoprint.settings
 import requests
+import datetime
 from datetime import timedelta
 from PIL import Image
 from io import BytesIO
