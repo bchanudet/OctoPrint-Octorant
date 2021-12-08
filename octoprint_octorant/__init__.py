@@ -5,8 +5,9 @@ from .discord import Hook
 import octoprint.plugin
 import octoprint.settings
 import requests
-import datetime
 from datetime import timedelta
+from datetime import datetime
+from datetime import timezone
 from PIL import Image
 from io import BytesIO
 import subprocess
@@ -23,7 +24,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 	def __init__(self):
 		# Events definition here (better for intellisense in IDE)
 		# referenced in the settings too.
-		self.lastNotificationTimestamp = datetime.now(),
+		self.lastNotificationTimestamp = datetime.now(timezone.utc),
 		self.events = {
 			"startup" : {
 				"name" : "Octoprint Startup",
