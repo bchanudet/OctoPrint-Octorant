@@ -189,6 +189,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				return self.notify_event("printer_state_unknown")
 
 		if event == "PrintStarted":
+			self.lastNotificationTimestamp = datetime.now(timezone.utc)
 			return self.notify_event("printing_started",payload)
 		if event == "PrintPaused":
 			return self.notify_event("printing_paused",payload)
@@ -236,14 +237,19 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			return False
 
 		# Special case for progress eventID : we check for progress and steps
-		if eventID == 'printing_progress' and (\
-			int(tmpConfig["step"]) == 0 \
-			or int(data["progress"]) == 0 \
-			or int(data["progress"]) % int(tmpConfig["step"]) != 0 \
-			or (datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 < int(tmpConfig["timeStep"]) \
-			or (int(data["progress"]) == 100) \
-		) :
-			return False
+		if eventID == 'printing_progress':
+			if (\
+				int(tmpConfig["step"]) == 0 \
+				or int(data["progress"]) == 0 \
+				or (int(data["progress"]) == 100) \
+			):
+				return False
+
+			if (\
+				(datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 < int(tmpConfig["timeStep"]) \
+				and int(data["progress"]) % int(tmpConfig["step"]) != 0
+			):
+				return False
 
 		tmpDataFromPrinter = self._printer.get_current_data()
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
