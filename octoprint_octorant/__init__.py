@@ -23,7 +23,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 	def __init__(self):
 		# Events definition here (better for intellisense in IDE)
 		# referenced in the settings too.
-		self.lastNotificationTimestamp = datetime.now()
+		self.lastNotificationTimestamp = datetime.now(),
 		self.events = {
 			"startup" : {
 				"name" : "Octoprint Startup",
