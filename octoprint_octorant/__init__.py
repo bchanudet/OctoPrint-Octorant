@@ -194,6 +194,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		if event == "PrintPaused":
 			return self.notify_event("printing_paused",payload)
 		if event == "PrintResumed":
+			self.lastNotificationTimestamp = datetime.now(timezone.utc)
 			return self.notify_event("printing_resumed",payload)
 		if event == "PrintCancelled":
 			return self.notify_event("printing_cancelled",payload)
@@ -250,6 +251,8 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				and int(data["progress"]) % int(tmpConfig["step"]) != 0
 			):
 				return False
+			else:
+				self.lastNotificationTimestamp = datetime.now(timezone.utc)
 
 		tmpDataFromPrinter = self._printer.get_current_data()
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
@@ -363,8 +366,6 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		)
 
 		out = discordCall.start()
-
-		self.lastNotificationTimestamp = datetime.now(timezone.utc)
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
