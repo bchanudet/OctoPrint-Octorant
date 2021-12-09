@@ -240,19 +240,24 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		# Special case for progress eventID : we check for progress and steps
 		if eventID == 'printing_progress':
 			if (\
+				# Check that both step config values aren't unset
 				int(tmpConfig["step"]) == 0 \
+				and int(tmpConfig["timeStep"]) == 0 \
+				# Don't notify about progress on 0% or 100% because other notifications fire then
 				or int(data["progress"]) == 0 \
 				or (int(data["progress"]) == 100) \
 			):
-				return False
+				return False # Don't notify
 
 			if (\
-				(datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 < int(tmpConfig["timeStep"]) \
-				and int(data["progress"]) % int(tmpConfig["step"]) != 0
+				# Notify if it's been a while since our last notification (timeStep) or if we're at a configured notification percentage (step)
+				(datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]) \
+				or int(data["progress"]) % int(tmpConfig["step"]) == 0
 			):
-				return False
-			else:
+				# Reset the "timer" since we're about to send a progress notification
 				self.lastNotificationTimestamp = datetime.now(timezone.utc)
+			else:
+				return False # Don't notify
 
 		tmpDataFromPrinter = self._printer.get_current_data()
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
