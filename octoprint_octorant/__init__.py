@@ -4,6 +4,7 @@ from .discord import Hook
 
 import octoprint.plugin
 import octoprint.settings
+import octoprint.printer
 import requests
 from datetime import timedelta
 from datetime import datetime
@@ -13,18 +14,17 @@ from io import BytesIO
 import subprocess
 import os
 
-
 class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
-					 octoprint.plugin.StartupPlugin,
-					 octoprint.plugin.SettingsPlugin,
-                     octoprint.plugin.AssetPlugin,
-                     octoprint.plugin.TemplatePlugin,
-					 octoprint.plugin.ProgressPlugin):
+			octoprint.plugin.StartupPlugin,
+			octoprint.plugin.SettingsPlugin,
+			octoprint.plugin.AssetPlugin,
+			octoprint.plugin.TemplatePlugin,
+			octoprint.plugin.ProgressPlugin):
 
 	def __init__(self):
 		# Events definition here (better for intellisense in IDE)
 		# referenced in the settings too.
-		self.lastNotificationTimestamp = datetime.now(timezone.utc),
+		self.lastProgressNotificationTimestamp = datetime.now(timezone.utc),
 		self.events = {
 			"startup" : {
 				"name" : "Octoprint Startup",
@@ -110,7 +110,6 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 	def on_after_startup(self):
 		self._logger.info("Octorant is started !")
 
-
 	##~~ SettingsPlugin mixin
 
 	def get_settings_defaults(self):
@@ -189,12 +188,12 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				return self.notify_event("printer_state_unknown")
 
 		if event == "PrintStarted":
-			self.lastNotificationTimestamp = datetime.now(timezone.utc)
+			self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
 			return self.notify_event("printing_started",payload)
 		if event == "PrintPaused":
 			return self.notify_event("printing_paused",payload)
 		if event == "PrintResumed":
-			self.lastNotificationTimestamp = datetime.now(timezone.utc)
+			self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
 			return self.notify_event("printing_resumed",payload)
 		if event == "PrintCancelled":
 			return self.notify_event("printing_cancelled",payload)
@@ -249,13 +248,16 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			):
 				return False # Don't notify
 
-			if (\
-				# Notify if it's been a while since our last notification (timeStep) or if we're at a configured notification percentage (step)
-				(datetime.now(timezone.utc)-self.lastNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]) \
-				or int(data["progress"]) % int(tmpConfig["step"]) == 0
-			):
+			estimatedPrintTimeMinutes = self._printer.get_current_job()["estimatedPrintTime"]/60
+			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/tmpConfig["step"]) > tmpConfig["timeStep"]):
+				# Notify if it's been a while since our last notification (timeStep)
+				if (datetime.now(timezone.utc)-self.lastProgressNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]):
+					# Reset the "timer" since we're about to send a progress notification
+					self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
+			# Notify if we're at a configured notification percentage (step)
+			elif (int(data["progress"]) % int(tmpConfig["step"]) == 0):
 				# Reset the "timer" since we're about to send a progress notification
-				self.lastNotificationTimestamp = datetime.now(timezone.utc)
+				self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
 			else:
 				return False # Don't notify
 
