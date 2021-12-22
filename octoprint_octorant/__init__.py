@@ -250,7 +250,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 
 			estimatedPrintTimeMinutes = self._printer.get_current_job()["estimatedPrintTime"]/60
 			self._logger.info("Estimated print time in minutes is " + str(estimatedPrintTimeMinutes))
-			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/tmpConfig["step"]) > float(tmpConfig["timeStep"])):
+			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/int(tmpConfig["step"])) > float(tmpConfig["timeStep"])):
 				self._logger.info("Checking if we need to notify based on minutes passed")
 				# Notify if it's been a while since our last notification (timeStep)
 				if (datetime.now(timezone.utc)-self.lastProgressNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]):
