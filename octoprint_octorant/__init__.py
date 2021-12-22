@@ -257,6 +257,9 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 					self._logger.info("Alerting because of minutes passed")
 					# Reset the "timer" since we're about to send a progress notification
 					self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
+				else
+					self._logger.info("Time alert not ready yet")
+					return False # Don't notify
 			# Notify only if we're at a configured notification percentage (step)
 			elif (int(data["progress"]) % int(tmpConfig["step"]) != 0):
 				self._logger.info("Percentage progress alert not ready yet")
