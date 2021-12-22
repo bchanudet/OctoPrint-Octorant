@@ -249,16 +249,17 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				return False # Don't notify
 
 			estimatedPrintTimeMinutes = self._printer.get_current_job()["estimatedPrintTime"]/60
+			self._logger.info("Estimated print time in minutes is " + estimatedPrintTimeMinutes)
 			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/tmpConfig["step"]) > float(tmpConfig["timeStep"])):
+				self._logger.info("Checking if we need to notify based on minutes passed")
 				# Notify if it's been a while since our last notification (timeStep)
 				if (datetime.now(timezone.utc)-self.lastProgressNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]):
+					self._logger.info("Alerting because of minutes passed")
 					# Reset the "timer" since we're about to send a progress notification
 					self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
-			# Notify if we're at a configured notification percentage (step)
-			elif (int(data["progress"]) % int(tmpConfig["step"]) == 0):
-				# Reset the "timer" since we're about to send a progress notification
-				self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)
-			else:
+			# Notify only if we're at a configured notification percentage (step)
+			elif (int(data["progress"]) % int(tmpConfig["step"]) != 0):
+				self._logger.info("Percentage progress alert not ready yet")
 				return False # Don't notify
 
 		tmpDataFromPrinter = self._printer.get_current_data()
