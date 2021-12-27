@@ -2,7 +2,7 @@
 layout: plugin
 
 id: octorant
-title: OctoPrint-Octorant
+title: OctoPrint-OctoRant
 description: Discord plugin for OctoPrint
 author: Benjamin Chanudet
 license: MIT
@@ -26,8 +26,8 @@ screenshots:
   alt: Receive octoprint's events on your Discord channel
   caption: Receive octoprint's events on your Discord channel
 - url: /assets/img/octorant/settings.jpg
-  alt: Customize the text Octorant sends to your channel
-  caption: Customize the text Octorant sends to your channel
+  alt: Customize the text OctoRant sends to your channel
+  caption: Customize the text OctoRant sends to your channel
 
 # Featured image
 featuredimage: /assets/img/octorant/featured.jpg

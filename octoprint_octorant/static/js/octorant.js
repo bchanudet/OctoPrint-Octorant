@@ -1,5 +1,5 @@
 /*
- * View model for OctoPrint-Octorant
+ * View model for OctoPrint-OctoRant
  *
  * Author: Benjamin Chanudet
  * License: MIT

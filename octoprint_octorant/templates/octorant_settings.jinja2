@@ -23,28 +23,38 @@
     </div>
 </form>
 <h3>{{ _('Messages settings') }}</h3>
-<form class="form-horizontal" data-bind="foreach: {data:Object.keys(settings.plugins.octorant.events) }">
-    <div class="octorant_message" data-bind="visible: $parent.settings.plugins.octorant.events[$data].name">
-        <h4>
-            <input type="checkbox" class="" data-bind="checked: $parent.settings.plugins.octorant.events[$data].enabled"/>
-            <span data-bind="text: $parent.settings.plugins.octorant.events[$data].name"></span>
-        </h4>
-        <div class="control-group">
-            <label class="control-label">{{ _("Message") }}</label>
-            <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: $parent.settings.plugins.octorant.events[$data].message"/>
+<form class="form-horizontal" data-bind="foreach: {data:settings.plugins.octorant.categories, as: 'category', noChildContext: true}">
+    <h4>
+        <span data-bind="text: category"></span>
+    </h4>
+    <div class="octorant_category" data-bind="foreach: {data:Object.keys(settings.plugins.octorant.events), as:'id', noChildContext: true}">
+
+        <!-- ko if: (settings.plugins.octorant.events[id].category && settings.plugins.octorant.events[id].category() === category) -->
+        <div class="octorant_message" data-bind="css: {inactive: (settings.plugins.octorant.events[id].enabled() == false)}">
+            <h5>
+                <input type="checkbox" class="" data-bind="checked: settings.plugins.octorant.events[id].enabled"/>
+                <span data-bind="text: settings.plugins.octorant.events[id].name"></span>
+            </h5>
+            <div class="control-group" data-bind="visible: settings.plugins.octorant.events[id].enabled">
+                <label class="control-label">{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.events[id].message"/>
+                </div>
             </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">{{ _("Include snapshot") }}</label>
-            <div class="controls">
-                <input type="checkbox" data-bind="checked: $parent.settings.plugins.octorant.events[$data].with_snapshot"/>
+            <div class="control-group" data-bind="visible: settings.plugins.octorant.events[id].enabled">
+                <label class="control-label">{{ _("Include snapshot") }}</label>
+                <div class="controls">
+                    <input type="checkbox" data-bind="checked: settings.plugins.octorant.events[id].with_snapshot"/>
+                </div>
             </div>
-        </div>
-        <div class="control-group" data-bind="if: $parent.settings.plugins.octorant.events[$data].step">
-            <label class="control-label">{{ _("Notify every") }}</label>
-            <div class="controls">
-                <input type="number" min="1" max="100" step="1" data-bind="value: $parent.settings.plugins.octorant.events[$data].step"/>%
+            <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].step, visible: settings.plugins.octorant.events[id].enabled">
+                <label class="control-label">{{ _("Notify every") }}</label>
+                <div class="controls">
+                    <div class="input-append">
+                        <input type="number" min="1" max="100" step="1" data-bind="value: settings.plugins.octorant.events[id].step"/>
+                        <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].step_unit"></span>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="control-group" data-bind="if: $parent.settings.plugins.octorant.events[$data].timeStep">
@@ -53,6 +63,8 @@
 		<input type="number" min="1" max="60" step="1" data-bind="value: $parent.settings.plugins.octorant.events[$data].timeStep"/> minute(s)
             </div>
         </div>
+        <!-- /ko -->
+
     </div>
 </form>
 <h3>Scripts settings</h3>
