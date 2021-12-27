@@ -169,7 +169,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			if (\
 				# Check that both step config values aren't unset
 				int(tmpConfig["step"]) == 0 \
-				and int(tmpConfig["timeStep"]) == 0 \
+				and int(tmpConfig["time_step"]) == 0 \
 				# Don't notify about progress on 0% or 100% because other notifications fire then
 				or int(data["progress"]) == 0 \
 				or (int(data["progress"]) == 100) \
@@ -178,10 +178,10 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 
 			estimatedPrintTimeMinutes = self._printer.get_current_job()["estimatedPrintTime"]/60
 			self._logger.info("Estimated print time in minutes is " + str(estimatedPrintTimeMinutes))
-			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/int(tmpConfig["step"])) > float(tmpConfig["timeStep"])):
+			if (estimatedPrintTimeMinutes is not None and estimatedPrintTimeMinutes/(100/int(tmpConfig["step"])) > float(tmpConfig["time_step"])):
 				self._logger.info("Checking if we need to notify based on minutes passed")
-				# Notify if it's been a while since our last notification (timeStep)
-				if (datetime.now(timezone.utc)-self.lastProgressNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["timeStep"]):
+				# Notify if it's been a while since our last notification (time_step)
+				if (datetime.now(timezone.utc)-self.lastProgressNotificationTimestamp).total_seconds()/60 >= int(tmpConfig["time_step"]):
 					self._logger.info("Alerting because of minutes passed")
 					# Reset the "timer" since we're about to send a progress notification
 					self.lastProgressNotificationTimestamp = datetime.now(timezone.utc)

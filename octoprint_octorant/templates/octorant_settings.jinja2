@@ -57,11 +57,11 @@
                 </div>
             </div>
 
-            <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].timeStep, visible: settings.plugins.octorant.events[id].enabled">
+            <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].time_step, visible: settings.plugins.octorant.events[id].enabled">
                 <label class="control-label">{{ _("or notify roughly every") }}</label>
                 <div class="controls">
                     <div class="input-append">
-                        <input type="number" min="1" max="60" step="1" data-bind="value: settings.plugins.octorant.events[id].timeStep"/>
+                        <input type="number" min="1" max="180" step="1" data-bind="value: settings.plugins.octorant.events[id].time_step"/>
                         <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].time_step_unit"></span>
                     </div>
                 </div>
