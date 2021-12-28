@@ -28,7 +28,7 @@
         <span data-bind="text: category"></span>
     </h4>
     <div class="octorant_category" data-bind="foreach: {data:Object.keys(settings.plugins.octorant.events), as:'id', noChildContext: true}">
-        
+
         <!-- ko if: (settings.plugins.octorant.events[id].category && settings.plugins.octorant.events[id].category() === category) -->
         <div class="octorant_message" data-bind="css: {inactive: (settings.plugins.octorant.events[id].enabled() == false)}">
             <h5>
@@ -45,6 +45,15 @@
                 <label class="control-label">{{ _("Include snapshot") }}</label>
                 <div class="controls">
                     <input type="checkbox" data-bind="checked: settings.plugins.octorant.events[id].with_snapshot"/>
+                </div>
+            </div>
+            <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].temperature, visible: settings.plugins.octorant.events[id].enabled">
+                <label class="control-label">{{ _("Notify at") }}</label>
+                <div class="controls">
+                    <div class="input-append">
+                        <input type="number" min="1" max="60" step="1" data-bind="value: settings.plugins.octorant.events[id].temperature"/>
+                        <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].temperature_unit"></span>
+                    </div>
                 </div>
             </div>
             <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].step, visible: settings.plugins.octorant.events[id].enabled">
@@ -80,7 +89,7 @@
         </div>
         <div style="clear:both">
             <p>
-                {{ _("Here you can specify a file to be executed <strong>before</strong> and <strong>after</strong> each message is sent to Discord.") }} 
+                {{ _("Here you can specify a file to be executed <strong>before</strong> and <strong>after</strong> each message is sent to Discord.") }}
                 {{ _("<strong>The file should be executable by the user under which OctoPrint is running</strong>") }}
             </p>
         </div>
