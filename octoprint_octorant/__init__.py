@@ -28,6 +28,8 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		# Events definition here (better for intellisense in IDE)
 		# referenced in the settings too.
 		self.events = EVENTS
+		self.uploading = False
+
 		
 	def on_after_startup(self):
 		self._logger.info("OctoRant is started !")
@@ -123,11 +125,26 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		if event == "PrintDone":
 			payload['time_formatted'] = str(timedelta(seconds=int(payload["time"])))
 			return self.notify_event("printing_done", payload)
-	
+
+		if event == "TransferStarted":
+			self.notify_event("transfer_started", payload)
+			self.uploading = True
+			return True
+		if event == "TransferDone":
+			payload['time_formatted'] = str(timedelta(seconds=int(payload["time"])))
+			self.notify_event("transfer_done", payload)
+			self.uploading = False
+			return True
+		if event == "TransferFailed":
+			self.notify_event("transfer_failed", payload)
+			self.uploading = False
+			return True
+		
+		self._logger.debug("Event {} was not handled".format(event))	
 		return True
 
 	def on_print_progress(self,location,path,progress):
-		self.notify_event("printing_progress",{"progress": progress})
+			self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
 
 	def on_settings_save(self, data):
 		old_bot_settings = '{}{}{}'.format(\

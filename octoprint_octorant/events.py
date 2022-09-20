@@ -1,6 +1,7 @@
-CATEGORIES = ["system","printer","prints","progress"]
+CATEGORIES = ["system","printer","prints","transfers","progress"]
 
 EVENTS = {
+    # SYSTEM EVENTS
     "startup" : {
         "category": "system",
         "name" : "Octoprint Startup",
@@ -15,6 +16,7 @@ EVENTS = {
         "with_snapshot": False,
         "message" : "💤 Going to bed now!"
     },
+    # PRINTER EVENTS
     "printer_state_operational":{
         "category": "printer",
         "name" : "Printer state : operational",
@@ -36,6 +38,7 @@ EVENTS = {
         "with_snapshot": False,
         "message" : "❔ Your printer is in an unknown state."
     },
+    # PRINTS EVENTS
     "printing_started":{
         "category": "prints",
         "name" : "Printing process : started",
@@ -78,6 +81,30 @@ EVENTS = {
         "with_snapshot": True,
         "message" : "👎 Printing has failed! :("
     },
+    # SD TRANSFERS EVENTS
+    "transfer_started":{
+        "category": "transfers",
+        "name" : "Transfer to SD card: started",
+        "enabled" : False,
+        "with_snapshot": False,
+        "message" : "📼 Transfer started: {local} to {remote}"
+    },
+    "transfer_done":{
+        "category": "transfers",
+        "name" : "Transfer to SD card: done",
+        "enabled" : False,
+        "with_snapshot": False,
+        "message" : "📼 Transfer done in {time_formatted}"
+    },
+    "transfer_failed":{
+        "category": "transfers",
+        "name" : "Transfer to SD card: failed",
+        "enabled" : False,
+        "with_snapshot": False,
+        "message" : "📼 Transfer has failed! :("
+    },
+
+    # PROGRESS EVENTS
     "printing_progress":{
         "category": "progress",
         "name" : "Printing progress (by completion)",
@@ -87,7 +114,18 @@ EVENTS = {
         "step" : 10,
         "step_unit":"%"
     },
-    "test":{ # Not a real message, but we will treat it as one
+    "transfer_progress":{
+        "category": "progress",
+        "name" : "SD card transfer progress (by completion)",
+        "enabled" : False,
+        "with_snapshot": False,
+        "message" : "📼 Transfer is at {progress}%",
+        "step" : 10,
+        "step_unit":"%"
+    },
+
+    # Not a real message, but we will treat it as one
+    "test":{ 
         "category": "test",
         "name": "Test message",
         "enabled" : True,
