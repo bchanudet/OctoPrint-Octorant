@@ -109,6 +109,8 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				return self.notify_event("printer_state_error")
 			elif payload["state_id"] == "UNKNOWN":
 				return self.notify_event("printer_state_unknown")
+			else:
+				self._logger.debug("Event {}/{} was not handled".format(event, payload["state_id"]))
 		
 		if event == "PrintStarted":
 			return self.notify_event("printing_started",payload)	
