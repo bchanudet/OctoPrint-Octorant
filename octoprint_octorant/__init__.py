@@ -92,8 +92,26 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			)
 		)
 
-	##~~ EventHandlerPlugin hook
+	##~~ Settings hook	
+	def on_settings_save(self, data):
+		old_bot_settings = '{}{}{}'.format(\
+			self._settings.get(['url'],merged=True),\
+			self._settings.get(['avatar'],merged=True),\
+			self._settings.get(['username'],merged=True)\
+		)
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		new_bot_settings = '{}{}{}'.format(\
+			self._settings.get(['url'],merged=True),\
+			self._settings.get(['avatar'],merged=True),\
+			self._settings.get(['username'],merged=True)\
+		)
+	
+		if(old_bot_settings != new_bot_settings):
+			self._logger.info("Settings have changed. Send a test message...")
+			self.notify_event("test")
 
+
+	##~~ EventHandlerPlugin hook
 	def on_event(self, event, payload):
 		
 		if event == "Startup":
@@ -144,23 +162,6 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 
 	def on_print_progress(self,location,path,progress):
 		self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
-
-	def on_settings_save(self, data):
-		old_bot_settings = '{}{}{}'.format(\
-			self._settings.get(['url'],merged=True),\
-			self._settings.get(['avatar'],merged=True),\
-			self._settings.get(['username'],merged=True)\
-		)
-		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-		new_bot_settings = '{}{}{}'.format(\
-			self._settings.get(['url'],merged=True),\
-			self._settings.get(['avatar'],merged=True),\
-			self._settings.get(['username'],merged=True)\
-		)
-	
-		if(old_bot_settings != new_bot_settings):
-			self._logger.info("Settings have changed. Send a test message...")
-			self.notify_event("test")
 
 
 	def notify_event(self,eventID,data={}):
