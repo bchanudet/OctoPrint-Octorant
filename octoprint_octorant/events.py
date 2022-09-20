@@ -19,21 +19,21 @@ EVENTS = {
     # PRINTER EVENTS
     "printer_state_operational":{
         "category": "printer",
-        "name" : "Printer state : operational",
+        "name" : "Printer state: operational",
         "enabled" : True,
         "with_snapshot": False,
         "message" : "✅ Your printer is operational."
     },
     "printer_state_error":{
         "category": "printer",
-        "name" : "Printer state : error",
+        "name" : "Printer state: error",
         "enabled" : True,
         "with_snapshot": False,
         "message" : "⚠️ Your printer is in an erroneous state."
     },
     "printer_state_unknown":{
         "category": "printer",
-        "name" : "Printer state : unknown",
+        "name" : "Printer state: unknown",
         "enabled" : True,
         "with_snapshot": False,
         "message" : "❔ Your printer is in an unknown state."
@@ -41,42 +41,42 @@ EVENTS = {
     # PRINTS EVENTS
     "printing_started":{
         "category": "prints",
-        "name" : "Printing process : started",
+        "name" : "Printing process: started",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "🖨️ I've started printing **{name}**"
     },
     "printing_paused":{
         "category": "prints",
-        "name" : "Printing process : paused",
+        "name" : "Printing process: paused",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "⏸️ The printing was paused."
     },
     "printing_resumed":{
         "category": "prints",
-        "name" : "Printing process : resumed",
+        "name" : "Printing process: resumed",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "▶️ The printing was resumed."
     },
     "printing_cancelled":{
         "category": "prints",
-        "name" : "Printing process : cancelled",
+        "name" : "Printing process: cancelled",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "🛑 The printing was stopped."
     },
     "printing_done":{
         "category": "prints",
-        "name" : "Printing process : done",
+        "name" : "Printing process: done",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "👍 Printing is done! Took about {time_formatted}"
     },
     "printing_failed":{
         "category": "prints",
-        "name" : "Printing process : failed",
+        "name" : "Printing process: failed",
         "enabled" : True,
         "with_snapshot": True,
         "message" : "👎 Printing has failed! :("

@@ -1,16 +1,13 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-import json
 import octoprint.plugin
 import octoprint.settings
-import requests
+import octoprint.util
 import subprocess
+import datetime
 import os
 
-from datetime import timedelta
-from PIL import Image
-from io import BytesIO
 
 from .discord import DiscordMessage
 from .events import EVENTS, CATEGORIES
@@ -123,7 +120,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			return self.notify_event("printing_cancelled",payload)
 
 		if event == "PrintDone":
-			payload['time_formatted'] = str(timedelta(seconds=int(payload["time"])))
+			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
 			return self.notify_event("printing_done", payload)
 
 		if event == "TransferStarted":
@@ -131,7 +128,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			self.uploading = True
 			return True
 		if event == "TransferDone":
-			payload['time_formatted'] = str(timedelta(seconds=int(payload["time"])))
+			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
 			self.notify_event("transfer_done", payload)
 			self.uploading = False
 			return True
@@ -144,7 +141,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		return True
 
 	def on_print_progress(self,location,path,progress):
-			self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
+		self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
 
 	def on_settings_save(self, data):
 		old_bot_settings = '{}{}{}'.format(\
@@ -194,10 +191,10 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		tmpDataFromPrinter = self._printer.get_current_data()
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
 			data["remaining"] = int(tmpDataFromPrinter["progress"]["printTimeLeft"])
-			data["remaining_formatted"] = str(timedelta(seconds=data["remaining"]))
+			data["remaining_formatted"] = str(datetime.timedelta(seconds=data["remaining"]))
 		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTime"] is not None:
 			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
-			data["spent_formatted"] = str(timedelta(seconds=data["spent"]))
+			data["spent_formatted"] = str(datetime.timedelta(seconds=data["spent"]))
 
 		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
 		try:
