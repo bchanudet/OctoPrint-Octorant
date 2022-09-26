@@ -1,4 +1,4 @@
-CATEGORIES = ["system","printer","prints","transfers","progress"]
+CATEGORIES = ["system","printer","prints","transfers","progress","timelapses"]
 
 EVENTS = {
     # SYSTEM EVENTS
@@ -122,6 +122,22 @@ EVENTS = {
         "message" : "📼 Transfer is at {progress}%",
         "step" : 10,
         "step_unit":"%"
+    },
+
+    # TIMELAPSES
+    "timelapse_done": {
+        "category": "timelapses",
+        "name": "Timelapse is available",
+        "enabled": False,
+        "upload_movie": False,
+        "message": "🎥 Timelapse has been created: {movie_basename}"
+    },
+    "timelapse_failed": {
+        "category": "timelapses",
+        "name": "Timelapse rendering has failed",
+        "enabled": False,
+        "with_snapshot": False,
+        "message": "🎥 Timelapse is not available"
     },
 
     # Not a real message, but we will treat it as one

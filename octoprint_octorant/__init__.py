@@ -14,12 +14,14 @@ from .events import EVENTS, CATEGORIES
 from .media import Media
 
 
-class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
-					 octoprint.plugin.StartupPlugin,
-					 octoprint.plugin.SettingsPlugin,
-                     octoprint.plugin.AssetPlugin,
-                     octoprint.plugin.TemplatePlugin,
-					 octoprint.plugin.ProgressPlugin):
+class OctorantPlugin(
+	octoprint.plugin.EventHandlerPlugin,
+	octoprint.plugin.StartupPlugin,
+	octoprint.plugin.SettingsPlugin,
+    octoprint.plugin.AssetPlugin,
+    octoprint.plugin.TemplatePlugin,
+	octoprint.plugin.ProgressPlugin
+):
 
 	def __init__(self):
 		# Events definition here (better for intellisense in IDE)
@@ -156,11 +158,17 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			self.notify_event("transfer_failed", payload)
 			self.uploading = False
 			return True
+		if event == "MovieDone":
+			self.notify_event("timelapse_done", payload)
+			return True
+		if event == "MovieFailed":
+			self.notify_event("timelapse_failed", payload)
+			return True
 		
 		self._logger.debug("Event {} was not handled".format(event))	
 		return True
 
-	def on_print_progress(self,location,path,progress):
+	def on_print_progress(self, location, path, progress):
 		self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
 
 
@@ -170,10 +178,14 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			return False
 		
 		tmpConfig = self._settings.get(["events", eventID],merged=True)
+		moviePath = None
 		
 		if tmpConfig["enabled"] != True:
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
+
+		if eventID == "timelapse_done" and tmpConfig["upload_movie"] == True:
+			moviePath = data["movie"]
 
 		# Setup default values
 		data.setdefault("progress",0)
@@ -208,7 +220,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
 				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
 		finally:
-			return self.send_message(eventID, message, tmpConfig["with_snapshot"])
+			return self.send_message(eventID, message, tmpConfig["with_snapshot"] if "with_snapshot" in tmpConfig else None, moviePath)
 
 	def exec_script(self, eventName, which=""):
 
@@ -239,7 +251,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			return out
 
 
-	def send_message(self, eventID, message, withSnapshot=False):
+	def send_message(self, eventID, message, withSnapshot=False, withMovie=None):
 
 		# return false if no URL is provided
 		if "http" not in self._settings.get(["url"],merged=True):
@@ -250,10 +262,13 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 		
 		# Get snapshot if asked for
 		snapshot = None
+		media = Media(self._settings, self._logger)
 
 		if withSnapshot:
-			media = Media(self._settings, self._logger)
 			snapshot = media.grab_snapshot()
+		
+		if not withMovie == None:
+			snapshot = media.grab_file(withMovie)
 			
 		# Send to Discord WebHook
 		discordMsg = DiscordMessage(
@@ -261,7 +276,7 @@ class OctorantPlugin(octoprint.plugin.EventHandlerPlugin,
 			message,
 			self._settings.get(["username"],merged=True),
 			self._settings.get(['avatar'],merged=True),
-			snapshot
+			snapshot 
 		)		
 
 		discordMsg.start()

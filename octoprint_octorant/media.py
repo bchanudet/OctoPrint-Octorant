@@ -61,7 +61,13 @@ class Media:
         return snapshot
 
     def grab_file(self, filepath, max_accepted_size=0):
+        if os.path.exists(filepath) == False:
+            return None
+
         if max_accepted_size > 0 and os.stat(filepath).st_size > max_accepted_size:
             return None
 
-        pass
+        with open(filepath,"rb") as f:
+            return {'file': (os.path.basename(filepath), f.read())}
+
+        return None

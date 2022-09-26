@@ -35,24 +35,32 @@
                 <input type="checkbox" class="" data-bind="checked: settings.plugins.octorant.events[id].enabled"/>
                 <span data-bind="text: settings.plugins.octorant.events[id].name"></span>
             </h5>
-            <div class="control-group" data-bind="visible: settings.plugins.octorant.events[id].enabled">
-                <label class="control-label">{{ _("Message") }}</label>
-                <div class="controls">
-                    <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.events[id].message"/>
+            <div data-bind="visible: settings.plugins.octorant.events[id].enabled">
+                <div class="control-group">
+                    <label class="control-label">{{ _("Message") }}</label>
+                    <div class="controls">
+                        <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.events[id].message"/>
+                    </div>
                 </div>
-            </div>
-            <div class="control-group" data-bind="visible: settings.plugins.octorant.events[id].enabled">
-                <label class="control-label">{{ _("Include snapshot") }}</label>
-                <div class="controls">
-                    <input type="checkbox" data-bind="checked: settings.plugins.octorant.events[id].with_snapshot"/>
+                <div class="control-group" data-bind="if: Object.keys(settings.plugins.octorant.events[id]).lastIndexOf('with_snapshot') > -1">
+                    <label class="control-label">{{ _("Include snapshot") }}</label>
+                    <div class="controls">
+                        <input type="checkbox" data-bind="checked: settings.plugins.octorant.events[id].with_snapshot"/>
+                    </div>
                 </div>
-            </div>
-            <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].step, visible: settings.plugins.octorant.events[id].enabled">
-                <label class="control-label">{{ _("Notify every") }}</label>
-                <div class="controls">
-                    <div class="input-append">
-                        <input type="number" min="1" max="100" step="1" data-bind="value: settings.plugins.octorant.events[id].step"/>
-                        <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].step_unit"></span>
+                <div class="control-group" data-bind="if: Object.keys(settings.plugins.octorant.events[id]).lastIndexOf('upload_movie') > -1">
+                    <label class="control-label">{{ _("Include timelapse") }}</label>
+                    <div class="controls">
+                        <input type="checkbox" data-bind="checked: settings.plugins.octorant.events[id].upload_movie"/>
+                    </div>
+                </div>
+                <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].step">
+                    <label class="control-label">{{ _("Notify every") }}</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input type="number" min="1" max="100" step="1" data-bind="value: settings.plugins.octorant.events[id].step"/>
+                            <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].step_unit"></span>
+                        </div>
                     </div>
                 </div>
             </div>
