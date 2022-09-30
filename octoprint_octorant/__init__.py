@@ -8,7 +8,7 @@ import subprocess
 import datetime
 import os
 
-
+from octoprint.events import Events
 from .discord import DiscordMessage
 from .events import EVENTS, CATEGORIES
 from .media import Media
@@ -134,13 +134,13 @@ class OctorantPlugin(
 	##~~ EventHandlerPlugin hook
 	def on_event(self, event, payload):
 		
-		if event == "Startup":
+		if event == Events.STARTUP:
 			return self.notify_event("startup")
 		
-		if event == "Shutdown":
+		if event == Events.SHUTDOWN:
 			return self.notify_event("shutdown")
 		
-		if event == "PrinterStateChanged":
+		if event == Events.PRINTER_STATE_CHANGED:
 			if payload["state_id"] == "OPERATIONAL":
 				return self.notify_event("printer_state_operational")
 			elif payload["state_id"] == "ERROR":
@@ -150,36 +150,36 @@ class OctorantPlugin(
 			else:
 				self._logger.debug("Event {}/{} was not handled".format(event, payload["state_id"]))
 		
-		if event == "PrintStarted":
+		if event == Events.PRINT_STARTED:
 			return self.notify_event("printing_started",payload)	
-		if event == "PrintPaused":
+		if event == Events.PRINT_PAUSED:
 			return self.notify_event("printing_paused",payload)
-		if event == "PrintResumed":
+		if event == Events.PRINT_RESUMED:
 			return self.notify_event("printing_resumed",payload)
-		if event == "PrintCancelled":
+		if event == Events.PRINT_CANCELLED:
 			return self.notify_event("printing_cancelled",payload)
 
-		if event == "PrintDone":
+		if event == Events.PRINT_DONE:
 			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
 			return self.notify_event("printing_done", payload)
 
-		if event == "TransferStarted":
+		if event == Events.TRANSFER_STARTED:
 			self.notify_event("transfer_started", payload)
 			self.uploading = True
 			return True
-		if event == "TransferDone":
+		if event == Events.TRANSFER_DONE:
 			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
 			self.notify_event("transfer_done", payload)
 			self.uploading = False
 			return True
-		if event == "TransferFailed":
+		if event == Events.TRANSFER_FAILED:
 			self.notify_event("transfer_failed", payload)
 			self.uploading = False
 			return True
-		if event == "MovieDone":
+		if event == Events.MOVIE_DONE:
 			self.notify_event("timelapse_done", payload)
 			return True
-		if event == "MovieFailed":
+		if event == Events.MOVIE_FAILED:
 			self.notify_event("timelapse_failed", payload)
 			return True
 		
