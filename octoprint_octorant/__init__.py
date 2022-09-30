@@ -218,12 +218,12 @@ class OctorantPlugin(
 		) :
 			return False			
 
-		tmpDataFromPrinter = self._printer.get_current_data()
-		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTimeLeft"] is not None:
-			data["remaining"] = int(tmpDataFromPrinter["progress"]["printTimeLeft"])
+		printer_data = self._printer.get_current_data()
+		if printer_data["progress"] is not None and printer_data["progress"]["printTimeLeft"] is not None:
+			data["remaining"] = int(printer_data["progress"]["printTimeLeft"])
 			data["remaining_formatted"] = str(datetime.timedelta(seconds=data["remaining"]))
-		if tmpDataFromPrinter["progress"] is not None and tmpDataFromPrinter["progress"]["printTime"] is not None:
-			data["spent"] = int(tmpDataFromPrinter["progress"]["printTime"])
+		if printer_data["progress"] is not None and printer_data["progress"]["printTime"] is not None:
+			data["spent"] = int(printer_data["progress"]["printTime"])
 			data["spent_formatted"] = str(datetime.timedelta(seconds=data["spent"]))
 
 		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
