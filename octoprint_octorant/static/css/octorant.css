@@ -30,3 +30,20 @@
 #settings_plugin_octorant .octorant_message .control-group{
     margin-bottom: 3px;
 }
+
+#settings_plugin_octorant .octorant_message .controls-radio{
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px 0;
+}
+
+#settings_plugin_octorant .octorant_message .controls-radio label{
+    margin: 0;
+}
+
+#settings_plugin_octorant .octorant_message .controls-radio label input{
+    margin: 0 .25rem 0 0;
+}

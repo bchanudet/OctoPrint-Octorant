@@ -54,6 +54,41 @@ class OctorantPlugin(
 		# settings.url, username and avatar are admin only.
 		return dict(never=[["events","test"]],
 					admin=[["url"],["username"],["avatar"],['script_before'],['script_after']])
+	
+	# Overrides
+	def on_settings_save(self, data):
+		old_bot_settings = '{}{}{}'.format(
+			self._settings.get(['url'],merged=True),
+			self._settings.get(['avatar'],merged=True),
+			self._settings.get(['username'],merged=True)
+		)
+		
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+		new_bot_settings = '{}{}{}'.format(
+			self._settings.get(['url'],merged=True),
+			self._settings.get(['avatar'],merged=True),
+			self._settings.get(['username'],merged=True)
+		)
+	
+		if(old_bot_settings != new_bot_settings):
+			self._logger.info("Settings have changed. Send a test message...")
+			self.notify_event("test")
+
+	def get_settings_version(self):
+		return 2
+
+	def on_settings_migrate(self, target, current):
+		self._logger.debug("Migrating settings from {} to {}".format(current, target))
+
+		if current == None and target == 2:
+			for evt in self._settings.get(['events']):
+				if self._settings.get(['events', evt, 'with_snapshot']) != None:
+					self._logger.debug("Migrating event {}".format(evt))
+					self._settings.set(['events', evt, 'media'],'snapshot' if self._settings.get_boolean(['events', evt, 'with_snapshot']) == True else 'none')
+					self._settings.remove(['events', evt, 'with_snapshot'])
+
+		self._logger.debug("Migration done!")
 
 	##~~ AssetPlugin mixin
 
@@ -94,23 +129,6 @@ class OctorantPlugin(
 			)
 		)
 
-	##~~ Settings hook	
-	def on_settings_save(self, data):
-		old_bot_settings = '{}{}{}'.format(\
-			self._settings.get(['url'],merged=True),\
-			self._settings.get(['avatar'],merged=True),\
-			self._settings.get(['username'],merged=True)\
-		)
-		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-		new_bot_settings = '{}{}{}'.format(\
-			self._settings.get(['url'],merged=True),\
-			self._settings.get(['avatar'],merged=True),\
-			self._settings.get(['username'],merged=True)\
-		)
-	
-		if(old_bot_settings != new_bot_settings):
-			self._logger.info("Settings have changed. Send a test message...")
-			self.notify_event("test")
 
 
 	##~~ EventHandlerPlugin hook
@@ -178,14 +196,11 @@ class OctorantPlugin(
 			return False
 		
 		tmpConfig = self._settings.get(["events", eventID],merged=True)
-		moviePath = None
 		
 		if tmpConfig["enabled"] != True:
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
 
-		if eventID == "timelapse_done" and tmpConfig["upload_movie"] == True:
-			moviePath = data["movie"]
 
 		# Setup default values
 		data.setdefault("progress",0)
@@ -215,12 +230,34 @@ class OctorantPlugin(
 		try:
 			message = tmpConfig["message"].format(**data)
 		except KeyError as error:
+			# Detected some tags that are not found in the payload
 			message = tmpConfig["message"] + \
 				"""\r\n:sos: **OctoRant Warning**""" + \
 				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
 				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
 		finally:
-			return self.send_message(eventID, message, tmpConfig["with_snapshot"] if "with_snapshot" in tmpConfig else None, moviePath)
+
+			# Let's get some media
+			media = Media(self._settings, self._logger)
+
+			if tmpConfig["media"] != "":
+				if tmpConfig["media"] == "thumbnail":
+					media.set_thumbnail(
+						self._file_manager.path_on_disk(data["origin"], data["path"])
+					)
+				elif tmpConfig["media"] == "snapshot":
+					media.set_snapshot(
+						url = self._settings.global_get(["webcam","snapshot"]),
+						mustFlipH = self._settings.global_get_boolean(["webcam","flipH"]),
+						mustFlipV = self._settings.global_get_boolean(["webcam","flipV"]),
+						mustRotate = self._settings.global_get_boolean(["webcam","rotate90"])
+					)
+				elif tmpConfig["media"] == "timelapse":
+					media.set_timelapse(
+						filePath= data["movie"]
+					)
+
+			return self.send_message(eventID, message, media)
 
 	def exec_script(self, eventName, which=""):
 
@@ -251,7 +288,7 @@ class OctorantPlugin(
 			return out
 
 
-	def send_message(self, eventID, message, withSnapshot=False, withMovie=None):
+	def send_message(self, eventID, message, media: Media = None):
 
 		# return false if no URL is provided
 		if "http" not in self._settings.get(["url"],merged=True):
@@ -259,24 +296,14 @@ class OctorantPlugin(
 
 		# exec "before" script if any
 		self.exec_script(eventID, "before")
-		
-		# Get snapshot if asked for
-		snapshot = None
-		media = Media(self._settings, self._logger)
 
-		if withSnapshot:
-			snapshot = media.grab_snapshot()
-		
-		if not withMovie == None:
-			snapshot = media.grab_file(withMovie)
-			
 		# Send to Discord WebHook
 		discordMsg = DiscordMessage(
 			self._settings.get(["url"], merged=True),
 			message,
 			self._settings.get(["username"],merged=True),
 			self._settings.get(['avatar'],merged=True),
-			snapshot 
+			media 
 		)		
 
 		discordMsg.start()

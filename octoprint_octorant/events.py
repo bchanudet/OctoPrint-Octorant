@@ -6,14 +6,16 @@ EVENTS = {
         "category": "system",
         "name" : "Octoprint Startup",
         "enabled" : True,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message" : "⏰ I just woke up! What are we gonna print today?"
     },
     "shutdown" : {
         "category": "system",
         "name" : "Octoprint Shutdown",
         "enabled" : True,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message" : "💤 Going to bed now!"
     },
     # PRINTER EVENTS
@@ -21,21 +23,24 @@ EVENTS = {
         "category": "printer",
         "name" : "Printer state: operational",
         "enabled" : True,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message" : "✅ Your printer is operational."
     },
     "printer_state_error":{
         "category": "printer",
         "name" : "Printer state: error",
         "enabled" : True,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message" : "⚠️ Your printer is in an erroneous state."
     },
     "printer_state_unknown":{
         "category": "printer",
         "name" : "Printer state: unknown",
         "enabled" : True,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message" : "❔ Your printer is in an unknown state."
     },
     # PRINTS EVENTS
@@ -43,42 +48,48 @@ EVENTS = {
         "category": "prints",
         "name" : "Printing process: started",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "🖨️ I've started printing **{name}**"
     },
     "printing_paused":{
         "category": "prints",
         "name" : "Printing process: paused",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "⏸️ The printing was paused."
     },
     "printing_resumed":{
         "category": "prints",
         "name" : "Printing process: resumed",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "▶️ The printing was resumed."
     },
     "printing_cancelled":{
         "category": "prints",
         "name" : "Printing process: cancelled",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "🛑 The printing was stopped."
     },
     "printing_done":{
         "category": "prints",
         "name" : "Printing process: done",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "👍 Printing is done! Took about {time_formatted}"
     },
     "printing_failed":{
         "category": "prints",
         "name" : "Printing process: failed",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "👎 Printing has failed! :("
     },
     # SD TRANSFERS EVENTS
@@ -86,21 +97,24 @@ EVENTS = {
         "category": "transfers",
         "name" : "Transfer to SD card: started",
         "enabled" : False,
-        "with_snapshot": False,
+        "media": "thumbnail",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "📼 Transfer started: {local} to {remote}"
     },
     "transfer_done":{
         "category": "transfers",
         "name" : "Transfer to SD card: done",
         "enabled" : False,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "📼 Transfer done in {time_formatted}"
     },
     "transfer_failed":{
         "category": "transfers",
         "name" : "Transfer to SD card: failed",
         "enabled" : False,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "📼 Transfer has failed! :("
     },
 
@@ -109,7 +123,8 @@ EVENTS = {
         "category": "progress",
         "name" : "Printing progress (by completion)",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "📢 Printing is at {progress}%",
         "step" : 10,
         "step_unit":"%"
@@ -118,7 +133,8 @@ EVENTS = {
         "category": "progress",
         "name" : "SD card transfer progress (by completion)",
         "enabled" : False,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["thumbnail","snapshot"],
         "message" : "📼 Transfer is at {progress}%",
         "step" : 10,
         "step_unit":"%"
@@ -129,14 +145,16 @@ EVENTS = {
         "category": "timelapses",
         "name": "Timelapse is available",
         "enabled": False,
-        "upload_movie": False,
+        "media": "timelapse",
+        "medias_list": ["snapshot","timelapse"],
         "message": "🎥 Timelapse has been created: {movie_basename}"
     },
     "timelapse_failed": {
         "category": "timelapses",
         "name": "Timelapse rendering has failed",
         "enabled": False,
-        "with_snapshot": False,
+        "media": "",
+        "medias_list": ["snapshot"],
         "message": "🎥 Timelapse is not available"
     },
 
@@ -145,7 +163,8 @@ EVENTS = {
         "category": "test",
         "name": "Test message",
         "enabled" : True,
-        "with_snapshot": True,
+        "media": "snapshot",
+        "medias_list": ["snapshot"],
         "message" : "Hello hello! If you see this message, it means that the settings are correct!"
     },
 }

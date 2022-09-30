@@ -6,21 +6,25 @@ import json
 import requests
 from threading import Thread
 
+from .media import Media
+
 
 class DiscordMessage(Thread):
 
-    def __init__(self, url, message, username="", avatar="", attachment=None):
+    def __init__(self, url, message, username="", avatar="", media:Media=None):
         Thread.__init__(self)
         self.url = url
         self.message = message
         self.username = username
         self.avatar = avatar
-        self.file = attachment
-
-    def set_file(self, filename, content):
-        self.file = {'file': (filename, content)}
+        self.media = media
 
     def run(self):
+        file = None
+
+        if self.media is not None:
+            file = self.media.get()
+
         payload = {
             'content': self.message,
             'username' : self.username,
@@ -29,7 +33,7 @@ class DiscordMessage(Thread):
 
         resp = requests.post(
             self.url,
-            files=self.file,
+            files=file,
             data=payload
         )
 
