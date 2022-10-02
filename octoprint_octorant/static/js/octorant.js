@@ -7,9 +7,6 @@
 $(function() {
     function OctorantViewModel(parameters) {
         var self = this;
-
-        // TODO: Implement your plugin's view model here.
-        console.log(self);
     }
 
     // view model class, parameters for constructor, container to bind to
