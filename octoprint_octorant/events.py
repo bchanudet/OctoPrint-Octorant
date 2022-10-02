@@ -1,5 +1,3 @@
-CATEGORIES = ["system","printer","prints","transfers","progress","timelapses"]
-
 EVENTS = {
     # SYSTEM EVENTS
     "startup" : {

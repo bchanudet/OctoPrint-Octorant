@@ -41,7 +41,6 @@ class OctorantPlugin(
 			'url': "",
 			'username': "",
 			'avatar': "",
-			'categories': CATEGORIES,
 			'events' : self.events,
 			'allow_scripts': False,
 			'script_before': '',
@@ -104,7 +103,7 @@ class OctorantPlugin(
 	##~~ TemplatePlugin mixin
 	def get_template_configs(self):
 		return [
-			dict(type="settings", custom_bindings=False)
+			dict(type="settings", custom_bindings=True)
 		]
 
 	##~~ Softwareupdate hook

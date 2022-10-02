@@ -3,19 +3,19 @@
     <div class="control-group">
         <label class="control-label">{{ _('Webhook URL') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.url">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.url">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">{{ _('Bot Name') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.username">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.username">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">{{ _('Bot Avatar URL') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.avatar">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.avatar">
         </div>
     </div>
     <div style="clear:both">
@@ -24,58 +24,58 @@
 </form>
 <h3>{{ _('Messages settings') }}</h3>
 <div>
-    <form class="form-horizontal"  data-bind="foreach: {data: settings.plugins.octorant.categories, as: 'category', noChildContext: true}">
+    <form class="form-horizontal"  data-bind="foreach: {data: categories, as: 'category', noChildContext: true}">
         <h4>
             <span data-bind="text: category"></span>
         </h4>
-        <div class="octorant_category" data-bind="foreach: {data:Object.keys(settings.plugins.octorant.events), as:'id', noChildContext: true}">
+        <div class="octorant_category" data-bind="foreach: {data: Object.keys(events), as:'id', noChildContext: true}">
             
-            <!-- ko if: (settings.plugins.octorant.events[id].category && settings.plugins.octorant.events[id].category() === category) -->
-            <div class="octorant_message" data-bind="css: {inactive: (settings.plugins.octorant.events[id].enabled() == false)}">
+            <!-- ko if: (events[id].category && events[id].category() === category) -->
+            <div class="octorant_message" data-bind="css: {inactive: (events[id].enabled() == false)}">
                 <h5>
-                    <input type="checkbox" class="" data-bind="checked: settings.plugins.octorant.events[id].enabled"/>
-                    <span data-bind="text: settings.plugins.octorant.events[id].name"></span>
+                    <input type="checkbox" class="" data-bind="checked: events[id].enabled"/>
+                    <span data-bind="text: events[id].name"></span>
                 </h5>
-                <div data-bind="visible: settings.plugins.octorant.events[id].enabled">
+                <div data-bind="visible: events[id].enabled">
                     <div class="control-group">
                         <label class="control-label">{{ _("Message") }}</label>
                         <div class="controls">
-                            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.events[id].message"/>
+                            <input type="text" class="input-block-level" data-bind="value: events[id].message"/>
                         </div>
                     </div>
-                    <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].medias_list().length > 0">
+                    <div class="control-group" data-bind="if: events[id].medias_list().length > 0">
                         <label class="control-label">{{ _("Include media") }}</label>
                         <div class="controls">
                             <label class="radio">
-                                <input type="radio" value="none" data-bind="checked: settings.plugins.octorant.events[id].media"/>
+                                <input type="radio" value="none" data-bind="checked: events[id].media"/>
                                 {{ _("None") }}
                             </label>
-                            <!-- ko if: settings.plugins.octorant.events[id].medias_list().lastIndexOf('thumbnail') > -1 -->
+                            <!-- ko if: events[id].medias_list().lastIndexOf('thumbnail') > -1 -->
                             <label class="radio">
-                                <input type="radio" value="thumbnail" data-bind="checked: settings.plugins.octorant.events[id].media" />
+                                <input type="radio" value="thumbnail" data-bind="checked: events[id].media" />
                                 {{ _("GCode Thumbnail") }}
                             </label>
                             <!-- /ko -->
-                            <!-- ko if: settings.plugins.octorant.events[id].medias_list().lastIndexOf('snapshot') > -1 -->
+                            <!-- ko if: events[id].medias_list().lastIndexOf('snapshot') > -1 -->
                             <label class="radio">
-                                <input type="radio" value="snapshot"  data-bind="checked: settings.plugins.octorant.events[id].media" />
+                                <input type="radio" value="snapshot"  data-bind="checked: events[id].media" />
                                 {{ _("Webcam snapshot") }}
                             </label>                            
                             <!-- /ko -->
-                            <!-- ko if: settings.plugins.octorant.events[id].medias_list().lastIndexOf('timelapse') > -1 -->
+                            <!-- ko if: events[id].medias_list().lastIndexOf('timelapse') > -1 -->
                             <label class="radio">
-                                <input type="radio" value="timelapse" data-bind="checked: settings.plugins.octorant.events[id].media" />
+                                <input type="radio" value="timelapse" data-bind="checked: events[id].media" />
                                 {{ _("Timelapse") }}
                             </label>
                             <!-- /ko -->
                         </div>
                     </div>
-                    <div class="control-group" data-bind="if: settings.plugins.octorant.events[id].step">
+                    <div class="control-group" data-bind="if: events[id].step">
                         <label class="control-label">{{ _("Notify every") }}</label>
                         <div class="controls">
                             <div class="input-append">
-                                <input type="number" min="1" max="100" step="1" data-bind="value: settings.plugins.octorant.events[id].step"/>
-                                <span class="add-on" data-bind="text: settings.plugins.octorant.events[id].step_unit"></span>
+                                <input type="number" min="1" max="100" step="1" data-bind="value: events[id].step"/>
+                                <span class="add-on" data-bind="text: events[id].step_unit"></span>
                             </div>
                         </div>
                     </div>
@@ -90,17 +90,17 @@
     <div style="clear:both">
         <p>{{ _("To modify these settings, you need to set") }} <code>allow_scripts: true</code> {{ _("in your configuration file.") }}</p>
     </div>
-    <div  data-bind="visible: settings.plugins.octorant.allow_scripts">
+    <div  data-bind="visible: settings.settings.plugins.octorant.allow_scripts">
         <div class="control-group">
             <label class="control-label">{{ _('Before message, start:') }}</label>
             <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.script_before">
+                <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.script_before">
             </div>
         </div>
         <div class="control-group">
             <label class="control-label">{{ _('After message, start:') }}</label>
             <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.script_after">
+                <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.script_after">
             </div>
         </div>
         <div style="clear:both">
