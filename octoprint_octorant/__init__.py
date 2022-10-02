@@ -10,7 +10,7 @@ import os
 
 from octoprint.events import Events
 from .discord import DiscordMessage
-from .events import EVENTS, CATEGORIES
+from .events import EVENTS
 from .media import Media
 
 
