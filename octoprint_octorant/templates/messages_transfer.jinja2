@@ -1,0 +1,85 @@
+<div class="octorant_category">
+    <!-- transfer_started -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['transfer_started'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['transfer_started'].enabled"/>
+            <span>{{ _("Transfer: Started") }}</span>
+        </h5>
+        <div data-bind="visible: events['transfer_started'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_transfer_started" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_transfer_started" 
+                        data-bind="textInput: events['transfer_started'].message"
+                    />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_transfer_started" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_transfer_started" data-bind="value: events['transfer_started'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="thumbnail">{{ _("GCODE Thumbnail (if available)") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- transfer_done -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['transfer_done'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['transfer_done'].enabled"/>
+            <span>{{ _("Transfer: Done") }}</span>
+        </h5>
+        <div data-bind="visible: events['transfer_done'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_transfer_done" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_transfer_done" 
+                        data-bind="textInput: events['transfer_done'].message"
+                    />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_transfer_done" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_transfer_done" data-bind="value: events['transfer_done'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="thumbnail">{{ _("GCODE Thumbnail (if available)") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- transfer_failed -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['transfer_failed'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['transfer_failed'].enabled"/>
+            <span>{{ _("Transfer: Failed") }}</span>
+        </h5>
+        <div data-bind="visible: events['transfer_failed'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_transfer_failed" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_transfer_failed" 
+                        data-bind="textInput: events['transfer_failed'].message"
+                    />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_transfer_failed" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_transfer_failed" data-bind="value: events['transfer_failed'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="thumbnail">{{ _("GCODE Thumbnail (if available)") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

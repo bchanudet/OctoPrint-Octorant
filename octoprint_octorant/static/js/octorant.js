@@ -9,11 +9,14 @@ $(function() {
         var self = this;
         self.settings = parameters[1];
 
-        self.categories = ["system","printer","prints","transfers","progress","timelapses"];
         self.events = null;
+        self.progress = null;
 
         self.onBeforeBinding = () => {
             self.events = self.settings.settings.plugins.octorant.events;
+            self.progress = self.settings.settings.plugins.octorant.progress;
+
+            console.log(self);
         }
     }
 

@@ -44,7 +44,17 @@ class OctorantPlugin(
 			'events' : self.events,
 			'allow_scripts': False,
 			'script_before': '',
-			'script_after': ''
+			'script_after': '',
+			'progress': {
+				'percentage_enabled': True,
+				'percentage_step': 10,
+				'time_enabled': False,
+				'time_step': 0,
+				'height_enabled' : False,
+				'height_step': 0,
+				'throttle_enabled': False,
+				'throttle_step': 0
+			}
 		}
 
 	# Restricts some paths to some roles only

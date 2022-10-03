@@ -1,0 +1,56 @@
+<div class="octorant_category">
+    <!-- timelapse_done -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['timelapse_done'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['timelapse_done'].enabled"/>
+            <span>{{ _("Rendering: Done") }}</span>
+        </h5>
+        <div data-bind="visible: events['timelapse_done'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_timelapse_done" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_timelapse_done" 
+                        data-bind="textInput: events['timelapse_done'].message"
+                    />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_timelapse_done" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_timelapse_done" data-bind="value: events['timelapse_done'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                        <option value="timelapse">{{ _("Timelapse (if possible)") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- timelapse_failed -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['timelapse_failed'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['timelapse_failed'].enabled"/>
+            <span>{{ _("Rendering: Failed") }}</span>
+        </h5>
+        <div data-bind="visible: events['timelapse_failed'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_timelapse_failed" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_timelapse_failed" 
+                        data-bind="textInput: events['timelapse_failed'].message"
+                    />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_timelapse_failed" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_timelapse_failed" data-bind="value: events['timelapse_failed'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
