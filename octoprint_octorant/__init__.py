@@ -97,6 +97,10 @@ class OctorantPlugin(
 					self._settings.set(['events', evt, 'media'],'snapshot' if self._settings.get_boolean(['events', evt, 'with_snapshot']) == True else 'none')
 					self._settings.remove(['events', evt, 'with_snapshot'])
 
+			if self._settings.get(['events', 'progress', 'enabled']) != None:
+				self._settings.set_boolean(['progress', 'percentage_enabled'], self._settings.get_boolean(['events', 'progress', 'enabled']))
+				self._settings.set_int(['progress', 'percentage_step'], self._settings.get_int(['events', 'progress', 'step'], merged=True))
+
 		self._logger.debug("Migration done!")
 
 	##~~ AssetPlugin mixin
