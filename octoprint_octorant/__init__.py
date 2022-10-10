@@ -6,9 +6,11 @@ import octoprint.settings
 import octoprint.util
 import subprocess
 import datetime
+import time
 import os
 
 from octoprint.events import Events
+from octoprint.util import RepeatedTimer
 from .discord import DiscordMessage
 from .events import EVENTS
 from .media import Media
@@ -19,15 +21,19 @@ class OctorantPlugin(
 	octoprint.plugin.StartupPlugin,
 	octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
-    octoprint.plugin.TemplatePlugin,
-	octoprint.plugin.ProgressPlugin
+    octoprint.plugin.TemplatePlugin
 ):
 
 	def __init__(self):
-		# Events definition here (better for intellisense in IDE)
-		# referenced in the settings too.
 		self.events = EVENTS
 		self.uploading = False
+		
+		# progress specific variables
+		self.progressTimer = None
+		self.lastProgressNotifiedAt = 0
+		self.lastProgressPercent = 0
+		self.lastProgressTime = 0
+		self.lastProgressHeight = 0
 
 		
 	def on_after_startup(self):
@@ -147,12 +153,13 @@ class OctorantPlugin(
 	##~~ EventHandlerPlugin hook
 	def on_event(self, event, payload):
 		
+		# System
 		if event == Events.STARTUP:
 			return self.notify_event("startup")
-		
 		if event == Events.SHUTDOWN:
 			return self.notify_event("shutdown")
 		
+		# Printer
 		if event == Events.PRINTER_STATE_CHANGED:
 			if payload["state_id"] == "OPERATIONAL":
 				return self.notify_event("printer_state_operational")
@@ -163,44 +170,126 @@ class OctorantPlugin(
 			else:
 				self._logger.debug("Event {}/{} was not handled".format(event, payload["state_id"]))
 		
+		# Prints
 		if event == Events.PRINT_STARTED:
+			self.start_progress_check()
 			return self.notify_event("printing_started",payload)	
 		if event == Events.PRINT_PAUSED:
+			self.stop_progress_check()
 			return self.notify_event("printing_paused",payload)
 		if event == Events.PRINT_RESUMED:
+			self.start_progress_check()
 			return self.notify_event("printing_resumed",payload)
 		if event == Events.PRINT_CANCELLED:
+			self.stop_progress_check()
 			return self.notify_event("printing_cancelled",payload)
-
 		if event == Events.PRINT_DONE:
+			self.stop_progress_check()
 			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
 			return self.notify_event("printing_done", payload)
 
+		# SD Card transfer
 		if event == Events.TRANSFER_STARTED:
-			self.notify_event("transfer_started", payload)
 			self.uploading = True
-			return True
+			self.start_progress_check()
+			return self.notify_event("transfer_started", payload)
 		if event == Events.TRANSFER_DONE:
 			payload['time_formatted'] = str(datetime.timedelta(seconds=int(payload["time"])))
-			self.notify_event("transfer_done", payload)
 			self.uploading = False
+			self.stop_progress_check()
+			self.notify_event("transfer_done", payload)
 			return True
 		if event == Events.TRANSFER_FAILED:
-			self.notify_event("transfer_failed", payload)
 			self.uploading = False
+			self.stop_progress_check()
+			self.notify_event("transfer_failed", payload)
 			return True
+
+		# Timelapses
 		if event == Events.MOVIE_DONE:
-			self.notify_event("timelapse_done", payload)
-			return True
+			return self.notify_event("timelapse_done", payload)
 		if event == Events.MOVIE_FAILED:
-			self.notify_event("timelapse_failed", payload)
-			return True
+			return self.notify_event("timelapse_failed", payload)
 		
 		self._logger.debug("Event {} was not handled".format(event))	
 		return True
 
-	def on_print_progress(self, location, path, progress):
-		self.notify_event("transfer_progress" if self.uploading else "printing_progress",{"progress": progress})
+	def start_progress_check(self):
+		# If already set, we must stop it
+		if self.progressTimer is not None:
+			self.stop_progress_check()
+
+		# Reset all variables
+		self.lastProgressNotifiedAt = 0
+		self.lastProgressPercent = 0
+		self.lastProgressTime = 0
+		self.lastProgressHeight = 0
+
+		# Start the thread
+		self.progressTimer = RepeatedTimer(1.0, self.progress_check)
+		self.progressTimer.start()
+	
+	def stop_progress_check(self):
+		if self.progressTimer is not None:
+			self.progressTimer.cancel()
+			self.progressTimer = None
+
+	def progress_check(self):
+		notifyReason = ""
+
+		# First we check the throttle and return if we are too early
+		if self._settings.get_boolean(['progress','throttle_enabled'],merged=True) == True:
+			if time.time() < (self.lastProgressNotifiedAt + self._settings.get_int(['progress','throttle_step'],merged=True)):
+				return
+
+		# Get the printer data
+		printer_data = self._printer.get_current_data()
+
+		# don't do anything if the printer is paused
+		if self._printer.is_pausing():
+			return
+
+		# Time check.
+		if notifyReason == "" and self._settings.get_boolean(['progress', 'time_enabled'], merged=True) == True:
+			if time.time() > (self.lastProgressTime + self._settings.get_int(['progress','time_step'], merged=True)):
+				self._logger.debug("Progress Check: Timer threshold was hit (last: {}, current: {})".format(self.lastProgressTime, time.time()))
+				self.lastProgressTime = time.time()
+				notifyReason = "time"
+			else:
+				self._logger.debug("Progress Check: Timer not triggerd (last: {}, current: {})".format(self.lastProgressTime, time.time()))
+
+		# Percentage check
+		if notifyReason == "" and self._settings.get_boolean(['progress','percentage_enabled'], merged=True) == True:
+			if int(printer_data["progress"]["completion"]) > 0:
+				if int(printer_data["progress"]["completion"]) > (self.lastProgressPercent + self._settings.get_int(['progress','percentage_step'], merged=True)):
+					self._logger.debug("Progress Check: Percentage threshold was hit (last: {}, current: {})".format(self.lastProgressPercent, int(printer_data["progress"]["completion"])))
+					self.lastProgressPercent = int(printer_data['progress']["completion"])
+					notifyReason = "percentage"
+				else:
+					self._logger.debug("Progress Check: Percentage not triggerd (last: {}, current: {})".format(self.lastProgressPercent, int(printer_data["progress"]["completion"])))
+		
+		# Height check
+		if notifyReason == "" and self._settings.get_boolean(['progress','height_enabled'],merged=True) == True:
+			if printer_data["currentZ"] is not None:
+				# let's check for abnormal Z moves and discard them.
+				# basic test if the current Z is larger than 5 times the step configured, that means a strange move that we'll discard.
+				if float(printer_data["currentZ"]) > 0 and float(printer_data["currentZ"]) > (self.lastProgressHeight + (self._settings.get_float(['progress','height_step'], merged=True)*5)):
+					return
+
+				if float(printer_data["currentZ"]) > 0 and float(printer_data["currentZ"]) > (self.lastProgressHeight + self._settings.get_float(['progress','height_step'], merged=True)):
+					self._logger.debug("Progress Check: Height threshold was hit (last: {}, current: {})".format(self.lastProgressHeight, float(printer_data["currentZ"])))
+					self.lastProgressHeight = float(printer_data['currentZ'])
+					notifyReason = "height"
+
+				else:
+					self._logger.debug("Progress Check: Height not triggerd (last: {}, current: {})".format(self.lastProgressHeight, float(printer_data["currentZ"])))
+
+
+		# Alright let's notify if necessary
+		if notifyReason != "":
+			self.lastProgressNotifiedAt = time.time()
+			self.notify_event("printing_progress" if not self.uploading else 'transfer_progress',{"reason":notifyReason})
+
 
 
 	def notify_event(self,eventID,data={}):
@@ -214,7 +303,6 @@ class OctorantPlugin(
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
 
-
 		# Setup default values
 		data.setdefault("progress",0)
 		data.setdefault("remaining",0)
@@ -222,22 +310,16 @@ class OctorantPlugin(
 		data.setdefault("spent",0)
 		data.setdefault("spent_formatted","0s")
 
-		# Special case for progress eventID : we check for progress and steps
-		if eventID == 'printing_progress' and (\
-			int(tmpConfig["step"]) == 0 \
-			or int(data["progress"]) == 0 \
-			or int(data["progress"]) % int(tmpConfig["step"]) != 0 \
-			or (int(data["progress"]) == 100) \
-		) :
-			return False			
-
 		printer_data = self._printer.get_current_data()
-		if printer_data["progress"] is not None and printer_data["progress"]["printTimeLeft"] is not None:
-			data["remaining"] = int(printer_data["progress"]["printTimeLeft"])
-			data["remaining_formatted"] = str(datetime.timedelta(seconds=data["remaining"]))
-		if printer_data["progress"] is not None and printer_data["progress"]["printTime"] is not None:
-			data["spent"] = int(printer_data["progress"]["printTime"])
-			data["spent_formatted"] = str(datetime.timedelta(seconds=data["spent"]))
+		if "progress" in printer_data:
+			if printer_data["progress"]["printTimeLeft"] is not None:
+				data["remaining"] = int(printer_data["progress"]["printTimeLeft"])
+				data["remaining_formatted"] = str(datetime.timedelta(seconds=data["remaining"]))
+			if printer_data["progress"]["printTime"] is not None:
+				data["spent"] = int(printer_data["progress"]["printTime"])
+				data["spent_formatted"] = str(datetime.timedelta(seconds=data["spent"]))
+			if printer_data["progress"]["completion"] is not None:
+				data["progress"] = int(printer_data["progress"]["completion"])
 
 		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
 		try:
