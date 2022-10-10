@@ -9,7 +9,7 @@ import datetime
 import time
 import os
 
-from octoprint.events import Events
+from octoprint.events import Events, eventManager
 from octoprint.util import RepeatedTimer
 from .discord import DiscordMessage
 from .events import EVENTS
@@ -38,6 +38,7 @@ class OctorantPlugin(
 		
 	def on_after_startup(self):
 		self._logger.info("OctoRant is started !")
+
 
 
 	##~~ SettingsPlugin mixin
@@ -148,10 +149,16 @@ class OctorantPlugin(
 			)
 		)
 
+	def register_custom_events(*args, **kwargs):
+		return ["before_notify", "after_notify"]
 
 
 	##~~ EventHandlerPlugin hook
-	def on_event(self, event, payload):
+	def on_event(self, event: str, payload):
+
+		# Let's avoid dealing with our own events...
+		if event.startswith("plugin_octorant"):
+			return
 		
 		# System
 		if event == Events.STARTUP:
@@ -211,6 +218,7 @@ class OctorantPlugin(
 		if event == Events.MOVIE_FAILED:
 			return self.notify_event("timelapse_failed", payload)
 		
+		# Helps discovering new events that ae not documented
 		self._logger.debug("Event {} was not handled".format(event))	
 		return True
 
@@ -239,7 +247,7 @@ class OctorantPlugin(
 
 		# First we check the throttle and return if we are too early
 		if self._settings.get_boolean(['progress','throttle_enabled'],merged=True) == True:
-			if time.time() < (self.lastProgressNotifiedAt + self._settings.get_int(['progress','throttle_step'],merged=True)):
+			if octoprint.util.monotonic_time() < (self.lastProgressNotifiedAt + self._settings.get_int(['progress','throttle_step'],merged=True)):
 				return
 
 		# Get the printer data
@@ -251,9 +259,9 @@ class OctorantPlugin(
 
 		# Time check.
 		if notifyReason == "" and self._settings.get_boolean(['progress', 'time_enabled'], merged=True) == True:
-			if time.time() > (self.lastProgressTime + self._settings.get_int(['progress','time_step'], merged=True)):
+			if octoprint.util.monotonic_time() > (self.lastProgressTime + self._settings.get_int(['progress','time_step'], merged=True)):
 				self._logger.debug("Progress Check: Timer threshold was hit (last: {}, current: {})".format(self.lastProgressTime, time.time()))
-				self.lastProgressTime = time.time()
+				self.lastProgressTime = octoprint.util.monotonic_time()
 				notifyReason = "time"
 			else:
 				self._logger.debug("Progress Check: Timer not triggerd (last: {}, current: {})".format(self.lastProgressTime, time.time()))
@@ -287,7 +295,7 @@ class OctorantPlugin(
 
 		# Alright let's notify if necessary
 		if notifyReason != "":
-			self.lastProgressNotifiedAt = time.time()
+			self.lastProgressNotifiedAt = octoprint.util.monotonic_time()
 			self.notify_event("printing_progress" if not self.uploading else 'transfer_progress',{"reason":notifyReason})
 
 
@@ -390,6 +398,7 @@ class OctorantPlugin(
 			return False
 
 		# exec "before" script if any
+		eventManager().fire("plugin_octorant_before_notify",{ "event":eventID })
 		self.exec_script(eventID, "before")
 
 		# Send to Discord WebHook
@@ -405,6 +414,7 @@ class OctorantPlugin(
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
+		eventManager().fire("plugin_octorant_after_notify",{ "event":eventID })
 
 		return True
 		
@@ -414,12 +424,14 @@ class OctorantPlugin(
 __plugin_name__ = "OctoRant"
 __plugin_pythoncompat__ = ">=2.7,<4"
 
+
 def __plugin_load__():
 	global __plugin_implementation__
 	__plugin_implementation__ = OctorantPlugin()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+		"octoprint.events.register_custom_events": __plugin_implementation__.register_custom_events
 	}
 
