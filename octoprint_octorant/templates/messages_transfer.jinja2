@@ -12,6 +12,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_transfer_started" 
                         data-bind="textInput: events['transfer_started'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['transfer_started'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['transfer_started'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -40,6 +46,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_transfer_done" 
                         data-bind="textInput: events['transfer_done'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['transfer_done'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['transfer_done'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">

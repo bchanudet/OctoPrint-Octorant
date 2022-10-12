@@ -12,6 +12,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_started" 
                         data-bind="textInput: events['printing_started'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_started'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_started'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -40,6 +46,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_paused" 
                         data-bind="textInput: events['printing_paused'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_paused'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_paused'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -68,6 +80,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_resumed" 
                         data-bind="textInput: events['printing_resumed'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_resumed'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_resumed'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -96,6 +114,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_cancelled" 
                         data-bind="textInput: events['printing_cancelled'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_cancelled'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_cancelled'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -124,6 +148,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_done" 
                         data-bind="textInput: events['printing_done'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_done'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_done'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
@@ -152,6 +182,12 @@
                     <input type="text" class="input-block-level" id="octorant_message_printing_failed" 
                         data-bind="textInput: events['printing_failed'].message"
                     />
+                    <span class="help-inline" data-bind="if: events['printing_failed'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_failed'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
                 </div>
             </div>
             <div class="control-group">
