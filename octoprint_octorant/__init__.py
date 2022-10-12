@@ -17,9 +17,9 @@ from .media import Media
 
 
 class OctorantPlugin(
-	octoprint.plugin.EventHandlerPlugin,
 	octoprint.plugin.StartupPlugin,
 	octoprint.plugin.SettingsPlugin,
+	octoprint.plugin.EventHandlerPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.TemplatePlugin
 ):
@@ -35,11 +35,20 @@ class OctorantPlugin(
 		self.lastProgressTime = 0
 		self.lastProgressHeight = 0
 
-		
+		# Discord webhook handler
+		self.discord: DiscordMessage = None
+
+	def initialize(self):
+		# Instantiate Discord handler
+		self.discord = DiscordMessage(self._logger)
+		self.discord.set_config(
+			self._settings.get(['url'],merged=True),
+			self._settings.get(['username'],merged=True),
+			self._settings.get(['avatar'],merged=True)
+		)
+
 	def on_after_startup(self):
-		self._logger.info("OctoRant is started !")
-
-
+		self._logger.info("OctoRant is started!")
 
 	##~~ SettingsPlugin mixin
 
@@ -89,6 +98,13 @@ class OctorantPlugin(
 	
 		if(old_bot_settings != new_bot_settings):
 			self._logger.info("Settings have changed. Send a test message...")
+
+			self.discord.set_config(
+				self._settings.get(['url'],merged=True),
+				self._settings.get(['username'],merged=True),
+				self._settings.get(['avatar'],merged=True)
+			)
+
 			self.notify_event("test")
 
 	def get_settings_version(self):
@@ -234,7 +250,7 @@ class OctorantPlugin(
 		self.lastProgressHeight = 0
 
 		# Start the thread
-		self.progressTimer = RepeatedTimer(1.0, self.progress_check)
+		self.progressTimer = RepeatedTimer(0.5, self.progress_check)
 		self.progressTimer.start()
 	
 	def stop_progress_check(self):
@@ -247,7 +263,7 @@ class OctorantPlugin(
 
 		# First we check the throttle and return if we are too early
 		if self._settings.get_boolean(['progress','throttle_enabled'],merged=True) == True:
-			if octoprint.util.monotonic_time() < (self.lastProgressNotifiedAt + self._settings.get_int(['progress','throttle_step'],merged=True)):
+			if time.time() < (self.lastProgressNotifiedAt + self._settings.get_int(['progress','throttle_step'],merged=True)):
 				return
 
 		# Get the printer data
@@ -259,9 +275,9 @@ class OctorantPlugin(
 
 		# Time check.
 		if notifyReason == "" and self._settings.get_boolean(['progress', 'time_enabled'], merged=True) == True:
-			if octoprint.util.monotonic_time() > (self.lastProgressTime + self._settings.get_int(['progress','time_step'], merged=True)):
+			if time.time() > (self.lastProgressTime + self._settings.get_int(['progress','time_step'], merged=True)):
 				self._logger.debug("Progress Check: Timer threshold was hit (last: {}, current: {})".format(self.lastProgressTime, time.time()))
-				self.lastProgressTime = octoprint.util.monotonic_time()
+				self.lastProgressTime = time.time()
 				notifyReason = "time"
 			else:
 				self._logger.debug("Progress Check: Timer not triggerd (last: {}, current: {})".format(self.lastProgressTime, time.time()))
@@ -295,7 +311,7 @@ class OctorantPlugin(
 
 		# Alright let's notify if necessary
 		if notifyReason != "":
-			self.lastProgressNotifiedAt = octoprint.util.monotonic_time()
+			self.lastProgressNotifiedAt = time.time()
 			self.notify_event("printing_progress" if not self.uploading else 'transfer_progress',{"reason":notifyReason})
 
 
@@ -375,7 +391,7 @@ class OctorantPlugin(
 			script_to_exec = self._settings.get(["script_before"], merged=True)
 		
 		elif which == "after":
-			script_to_exec = self._settings.get(["script_after"], merged=True)
+			script_to_exec = self._settings.get(["script_after"], merged=True)  # type: ignore
 		
 		# Finally exec the script
 		out = ""
@@ -402,15 +418,8 @@ class OctorantPlugin(
 		self.exec_script(eventID, "before")
 
 		# Send to Discord WebHook
-		discordMsg = DiscordMessage(
-			self._settings.get(["url"], merged=True),
-			message,
-			self._settings.get(["username"],merged=True),
-			self._settings.get(['avatar'],merged=True),
-			media 
-		)		
-
-		discordMsg.start()
+		self.discord.send_message(message, media)
+		
 
 		# exec "after" script if any
 		self.exec_script(eventID, "after")
