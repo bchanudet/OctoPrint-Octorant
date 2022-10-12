@@ -93,52 +93,7 @@ Messages are regular Discord messages, which means you can use :
     - Role mentions (e.g. `@admin`) must be written `<@&ID>` (notice the `&`), where `ID` must be the [Role ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
     - User mentions (e.g. `@bchanudet`) must be written `<@ID>` (no `&` here), where `ID` is the [User ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
 
-Some events also support variables, here is a basic list : 
-
-**Printing process : started event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-
-**Printing process : failed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-
-**Printing process : done event** : 
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{time}`: time needed for the print (in seconds)
-- `{time_formatted}` : same as `{time}`, but in a human-readable format (`HH:MM:SS`)
-
-**Printing process : failed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing process : paused event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing process : resumed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing progress event** :
-- `{progress}` : progress in % of the print.
-- `{spent}`: time spent since the start of the print (in seconds)
-- `{spent_formatted}` : same as `{spent}`, but in a human-readable format (`HH:MM:SS`)
-- `{remaining}`: time remaining until the end of the print (in seconds)
-- `{remaining_formatted}` : same as `{remaining}`, but in a human-readable format (`HH:MM:SS`)
-
-**Printer state : error**
-- `{error}` : The error received 
+Some events also support variables. 🎇 The list of variables is now directly visible on the configuration page. 
 
 For more reference, you can go to the [Octoprint documentation on Events](http://docs.octoprint.org/en/master/events/index.html#sec-events-available-events)
 
