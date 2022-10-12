@@ -8,12 +8,6 @@ OctoRant is *one-way only*, from your printer to your Discord channel. This plug
 
 License : [MIT](./LICENSE)
 
-## Screenshots
-
-![Screeshot of the Discord messages](assets/img/discord.jpg)
-
-![Screeshot of the settings panel](assets/img/settings.jpg)
-
 ## Changelog
 
 ### 1.3.0
