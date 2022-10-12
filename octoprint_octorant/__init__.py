@@ -195,12 +195,14 @@ class OctorantPlugin(
 		
 		# Prints
 		if event == Events.PRINT_STARTED:
+			self.uploading = False
 			self.start_progress_check()
 			return self.notify_event("printing_started",payload)	
 		if event == Events.PRINT_PAUSED:
 			self.stop_progress_check()
 			return self.notify_event("printing_paused",payload)
 		if event == Events.PRINT_RESUMED:
+			self.uploading = False
 			self.start_progress_check()
 			return self.notify_event("printing_resumed",payload)
 		if event == Events.PRINT_CANCELLED:
@@ -312,45 +314,54 @@ class OctorantPlugin(
 		# Alright let's notify if necessary
 		if notifyReason != "":
 			self.lastProgressNotifiedAt = time.time()
-			self.notify_event("printing_progress" if not self.uploading else 'transfer_progress',{"reason":notifyReason})
+			payload = {}			
+			payload["reason"] = notifyReason
+
+			if self.uploading == False:
+				payload = self._printer._payload_for_print_job_event()
+				
+				payload["reason"] = notifyReason
+				payload["progress"] = 0
+				payload["remaining"] = 0
+				payload["remaining_formatted"] = "0s"
+				payload["spent"] = 0
+				payload["spent_formatted"] = "0s"
+
+				if printer_data["progress"] is not None:
+					if printer_data["progress"]["printTimeLeft"] is not None:
+						payload["remaining"] = int(printer_data["progress"]["printTimeLeft"])
+						payload["remaining_formatted"] = str(datetime.timedelta(seconds=payload["remaining"]))
+					if printer_data["progress"]["printTime"] is not None:
+						payload["spent"] = int(printer_data["progress"]["printTime"])
+						payload["spent_formatted"] = str(datetime.timedelta(seconds=payload["spent"]))
+					if printer_data["progress"]["completion"] is not None:
+						payload["progress"] = int(printer_data["progress"]["completion"])
+
+			self.notify_event("printing_progress" if not self.uploading else 'transfer_progress', payload)
 
 
 
-	def notify_event(self,eventID,data={}):
+	def notify_event(self, eventID, data={}):
 		if(eventID not in self.events):
 			self._logger.error("Tried to notifiy on inexistant eventID : ", eventID)
 			return False
 		
-		tmpConfig = self._settings.get(["events", eventID],merged=True)
+		event_configuration = self._settings.get(["events", eventID],merged=True)
 		
-		if tmpConfig["enabled"] != True:
+		if event_configuration["enabled"] != True:
 			self._logger.debug("Event {} is not enabled. Returning gracefully".format(eventID))
 			return False
 
-		# Setup default values
-		data.setdefault("progress",0)
-		data.setdefault("remaining",0)
-		data.setdefault("remaining_formatted","0s")
-		data.setdefault("spent",0)
-		data.setdefault("spent_formatted","0s")
-
-		printer_data = self._printer.get_current_data()
-		if "progress" in printer_data:
-			if printer_data["progress"]["printTimeLeft"] is not None:
-				data["remaining"] = int(printer_data["progress"]["printTimeLeft"])
-				data["remaining_formatted"] = str(datetime.timedelta(seconds=data["remaining"]))
-			if printer_data["progress"]["printTime"] is not None:
-				data["spent"] = int(printer_data["progress"]["printTime"])
-				data["spent_formatted"] = str(datetime.timedelta(seconds=data["spent"]))
-			if printer_data["progress"]["completion"] is not None:
-				data["progress"] = int(printer_data["progress"]["completion"])
+		# Alter a bit the payload to offer more variables
+		if "time" in data:
+			data["time_formatted"] = str(datetime.timedelta(seconds=int(data["time"])))
 
 		self._logger.debug("Available variables for event " + eventID +": " + ", ".join(list(data)))
 		try:
-			message = tmpConfig["message"].format(**data)
+			message = event_configuration["message"].format(**data)
 		except KeyError as error:
 			# Detected some tags that are not found in the payload
-			message = tmpConfig["message"] + \
+			message = event_configuration["message"] + \
 				"""\r\n:sos: **OctoRant Warning**""" + \
 				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
 				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
@@ -359,19 +370,19 @@ class OctorantPlugin(
 			# Let's get some media
 			media = Media(self._settings, self._logger)
 
-			if tmpConfig["media"] != "":
-				if tmpConfig["media"] == "thumbnail":
+			if event_configuration["media"] != "":
+				if event_configuration["media"] == "thumbnail":
 					media.set_thumbnail(
 						self._file_manager.path_on_disk(data["origin"], data["path"])
 					)
-				elif tmpConfig["media"] == "snapshot":
+				elif event_configuration["media"] == "snapshot":
 					media.set_snapshot(
 						url = self._settings.global_get(["webcam","snapshot"]),
 						mustFlipH = self._settings.global_get_boolean(["webcam","flipH"]),
 						mustFlipV = self._settings.global_get_boolean(["webcam","flipV"]),
 						mustRotate = self._settings.global_get_boolean(["webcam","rotate90"])
 					)
-				elif tmpConfig["media"] == "timelapse":
+				elif event_configuration["media"] == "timelapse":
 					media.set_timelapse(
 						filePath= data["movie"]
 					)
