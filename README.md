@@ -63,7 +63,7 @@ Here you can customize every message handled by OctoRant.
 
 Coming in v1.3.0, OctoRant now includes several progress criterias that can be combined altogther:
 - **Percentage of completion**: Be notified every `X`% during the print. _This is the new name of the option that existed in < 1.3.0 under the "Notify every XX%"_
-- **Timed interval**: For long prints were percentage change too slowly, you can enabled a timed notification every `X` seconds, from as low as every second.
+- **Timed interval**: For long prints were percentage change too slowly, you can enable a timed notification every `X` seconds, from as low as every second.
 - **Height**: _(in Beta)_ Be notified for each `X`mm. A _quick'n'dirty_ algorithm was set to discard unrelated movements (like hovering above the plate to do Z-homing at the center), but false positives are still possible
 
 Considering those three criteria could generate a massive amount of messages, a fourth value is available:
