@@ -14,7 +14,7 @@ plugin_package = "octoprint_octorant"
 plugin_name = "OctoPrint-OctoRant"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.2.3"
+plugin_version = "1.3.0"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -24,7 +24,7 @@ plugin_description = """Discord plugin for OctoPrint"""
 plugin_author = "Benjamin Chanudet"
 
 # The plugin's author's mail address.
-plugin_author_email = "hello@benjaminchanudet.com"
+plugin_author_email = "dev@benjaminchanudet.com"
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
 plugin_url = "https://github.com/bchanudet/OctoPrint-Octorant"
