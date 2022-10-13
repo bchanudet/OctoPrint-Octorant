@@ -1,0 +1,50 @@
+<div class="octorant_category">
+    <!-- startup -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['startup'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['startup'].enabled"/>
+            <span>{{ _("Octoprint Startup") }}</span>
+        </h5>
+        <div data-bind="visible: events['startup'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_startup" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_startup" data-bind="textInput: events['startup'].message"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_startup" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_startup" data-bind="value: events['startup'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- shutdown -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['shutdown'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['shutdown'].enabled"/>
+            <span>{{ _("Octoprint Shutdown") }}</span>
+        </h5>
+        <div data-bind="visible: events['shutdown'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_shutdown" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_shutdown" data-bind="textInput: events['shutdown'].message"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_shutdown" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_shutdown" data-bind="value: events['shutdown'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

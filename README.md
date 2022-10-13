@@ -1,18 +1,24 @@
-# OctoPrint-OctoRant 1.2.3
+# OctoPrint-OctoRant 1.3.0
 
-OctoRant is a plugin allowing Octoprint to send notifications to a Discord channel via a webhook URL. When wanted it can directly send a snapshot to Discord (without needing third-party services)
+OctoRant is a plugin allowing Octoprint to send notifications to a Discord channel via a webhook URL. When wanted it can directly send a snapshot to Discord (without needing third-party services).
 
-## OctoRant is only a notifier!
+[![GitHub license](https://img.shields.io/github/license/bchanudet/OctoPrint-Octorant)](https://github.com/bchanudet/OctoPrint-Octorant/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/bchanudet/OctoPrint-Octorant)](https://github.com/bchanudet/OctoPrint-Octorant/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/bchanudet/OctoPrint-Octorant)](https://github.com/bchanudet/OctoPrint-Octorant/issues)
 
-OctoRant is *one-way only*, from your printer to your Discord channel. This plugin **is not able** to receive commands for your printer from Discord. However a good fellow @cameroncros forked my plugin exactly to add this feature. Feel free to try [DiscordRemote](https://plugins.octoprint.org/plugins/DiscordRemote/)
+## OctoRant is only a **notifier**!
 
-License : MIT 
+OctoRant is *one-way only*, from your printer to your Discord channel. This plugin **is not able** to receive commands for your printer from Discord. However a good fellow @cameroncros forked the plugin exactly to add this feature. Feel free to try [DiscordRemote](https://plugins.octoprint.org/plugins/DiscordRemote/)
 
-![Screeshot of the Discord messages](assets/img/discord.jpg)
-
-![Screeshot of the settings panel](assets/img/settings.jpg)
+License : [MIT](./LICENSE)
 
 ## Changelog
+
+### 1.3.0
+
+A lot of improvements came with this new version. Follow the 🎇 icon in this file to see what's new.
+
+### History
 
 See [the release history](https://github.com/bchanudet/OctoPrint-Octorant/releases) to get a quick summary of what's new in the latest versions.
 
@@ -28,41 +34,44 @@ or manually using this URL:
 
 ### Create the WebHook in Discord
 
-*Note : you need to have the permission "Manage WebHooks" to create or edit a WebHook in Discord.*
-
-![Go to the channel settings](assets/docs/discord_setup_1.jpg)
-
-![Under "Webhooks", click "Create Webhook"](assets/docs/discord_setup_2.jpg)
-
-![Enter the details, and copy the URL at the bottom](assets/docs/discord_setup_3.jpg)
-
-Once you got the WebHook URL, head over to the plugin configuration to finish the setup.
+Please follow [Discord's official guide on Webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) to create a Webhook URL. Once you have it, head over to the plugin configuration to finish the setup.
 
 ## Configuration
 
-The plugin can be configured in the configuration panel, under the "Octorant" panel.
+The plugin can be configured in the configuration panel, under the "OctoRant" panel.
 
 ### Discord Settings
 
-- WebHook URL : please follow the Setup procedure to retrieve the URL of the WebHook.
-- Bot name : You can override the name you put on the WebHook description in Discord by a name. Useful if the webhook is not specific to Octorant and also used for other things.
-- Bot Avatar URL : You can also override the avatar us put in Discord for the WebHook. The URL needs to be globally accessible (it will be retrieved by Discord's servers).
+- **WebHook URL** : please follow the Setup procedure to retrieve the URL of the WebHook.
+- **Bot name** : You can override the name you put on the WebHook description in Discord by a name. Useful if the webhook is not specific to OctoRant and also used for other things.
+- **Bot Avatar URL** : You can also override the avatar us put in Discord for the WebHook. The URL needs to be globally accessible (it will be retrieved by Discord's servers).
 
 In order for you to be sure these settings work, every time you change one of them, a test message will be sent to the corresponding Discord Channel. If you don't receive it, something is most likely wrong!
 
 ### Message Settings
 
-Here you can customize every message handled by Octorant.
+Here you can customize every message handled by OctoRant.
 
 - **Toggle the message** : by unchecking the checkbox in front of the message title, you can disable the message. It won't be sent to Discord.
 - **Message** : you can change the default content here. See the section [Message format](#message-format) for more information.
-- **Include snapshot** : if you have a snapshot URL defined in the Octoprint settings, you can choose to upload a snapshot with the message to Discord. 
-- **Notify every `XX`%** : specific to the `printing progress` message, this settings allows you to change the frequency of the notification : 
-    - `10%` means you'll receive a message at 10%, 20%, 30%, 40% ... 80%, 90% of the printing process.
-    - `5%` means you'll receive a message at 5%, 10%, 15%, 20% ... 80%, 85%, 90%, 95% of the printing process.
-    - etc...
+- **Include media** : Embed a media with your message. Depending on the message you can choose which media to send:
+    - **Webcam snapshot**: If configured in Octoprint, a snapshot of your webcam watching your printer
+    - 🎇 **GCode thumbnail**: If your gcode files contains a preview thumbnail (according to PrusaSlicer format), OctoRant will send it.
+    - 🎇 **Timelapse movie**: Only on the "timelapse done" message, you can make OctoRant try to send the timelapse to Discord. Beware of the upload limit of your destination server though (8MB by default, but can be more if the server is boosted)
+
+### 🎇 Smart progress notifications
+
+Coming in v1.3.0, OctoRant now includes several progress criterias that can be combined altogther:
+- **Percentage of completion**: Be notified every `X`% during the print. _This is the new name of the option that existed in < 1.3.0 under the "Notify every XX%"_
+- **Timed interval**: For long prints were percentage change too slowly, you can enable a timed notification every `X` seconds, from as low as every second.
+- **Height**: _(in Beta)_ Be notified for each `X`mm. A _quick'n'dirty_ algorithm was set to discard unrelated movements (like hovering above the plate to do Z-homing at the center), but false positives are still possible
+
+Considering those three criteria could generate a massive amount of messages, a fourth value is available:
+- **Throttle notification**: When enabled, a minimum of `X` seconds between progress notifications will be respected.
 
 ### Scripts Settings
+
+**🎇Depreciation notice**: Those settings are now deprecated and will be removed in a further release of the plugin. This is mostly due by the fact that Octoprint offers a much more powerful option with the [Event Manager](https://docs.octoprint.org/en/master/events/index.html), and also because I always thought I did a half-assed feature. In order to use the Event Manager with OctoRant, two new events are available : `plugin_octorant_before_notify` and `plugin_octorant_after_notify`. An `{event}` variable is available to know which event was triggered by OctoRant.
 
 Octorant allows you to launch scripts everytime a message is sent:
 
@@ -77,54 +86,12 @@ Script configuration was made voluntarily a little harder, as running scripts ex
 Messages are regular Discord messages, which means you can use :
 - `**markdown**` format (see [Discord Documentation](https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-))
 - `:emoji:` shortcuts to display emojis
-- `@mentions` to notify someone
+- Mentions are a little trickier:
+    - General mentions (`@everyone`, `@here`) should work as usual
+    - Role mentions (e.g. `@admin`) must be written `<@&ID>` (notice the `&`), where `ID` must be the [Role ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
+    - User mentions (e.g. `@bchanudet`) must be written `<@ID>` (no `&` here), where `ID` is the [User ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
 
-Some events also support variables, here is a basic list : 
-
-**Printing process : started event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-
-**Printing process : failed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-
-**Printing process : done event** : 
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{time}`: time needed for the print (in seconds)
-- `{time_formatted}` : same as `{time}`, but in a human-readable format (`HH:MM:SS`)
-
-**Printing process : failed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing process : paused event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing process : resumed event** :
-- `{name}` : file's name that's being printed
-- `{path}` : file's path within its origin location
-- `{origin}` : the origin storage location
-- `{position}`: position of the hotend
-
-**Printing progress event** :
-- `{progress}` : progress in % of the print.
-- `{spent}`: time spent since the start of the print (in seconds)
-- `{spent_formatted}` : same as `{spent}`, but in a human-readable format (`HH:MM:SS`)
-- `{remaining}`: time remaining until the end of the print (in seconds)
-- `{remaining_formatted}` : same as `{remaining}`, but in a human-readable format (`HH:MM:SS`)
-
-**Printer state : error**
-- `{error}` : The error received 
+Some events also support variables. 🎇 The list of variables is now directly visible on the configuration page. 
 
 For more reference, you can go to the [Octoprint documentation on Events](http://docs.octoprint.org/en/master/events/index.html#sec-events-available-events)
 

@@ -1,4 +1,5 @@
 {
-    "python.linting.pylintEnabled": false,
-    "python.pythonPath": "/bin/python3"
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "/home/octoprint/dev/OctoPrint/venv/bin/python3.8",
+    "python.linting.enabled": true
 }

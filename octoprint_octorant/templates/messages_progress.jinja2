@@ -1,0 +1,159 @@
+<div class="octorant_category">
+    <!-- printing_progress -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['printing_progress'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['printing_progress'].enabled"/>
+            <span>{{ _("Progress: Printing process") }}</span>
+        </h5>
+        <div data-bind="visible: events['printing_progress'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_printing_progress" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_printing_progress" 
+                        data-bind="textInput: events['printing_progress'].message"
+                    />
+                    <span class="help-inline" data-bind="if: events['printing_progress'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printing_progress'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_printing_progress" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_printing_progress" data-bind="value: events['printing_progress'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="thumbnail">{{ _("GCODE Thumbnail (if available)") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- transfer_progress -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['transfer_progress'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['transfer_progress'].enabled"/>
+            <span>{{ _("Progress: Transfer process") }}</span>
+        </h5>
+        <div data-bind="visible: events['transfer_progress'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_transfer_progress" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_transfer_progress" 
+                        data-bind="textInput: events['transfer_progress'].message"
+                    />
+                    <span class="help-inline" data-bind="if: events['transfer_progress'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['transfer_progress'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_transfer_progress" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_transfer_progress" data-bind="value: events['transfer_progress'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="thumbnail">{{ _("GCODE Thumbnail (if available)") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- progress specific settings -->
+    <div class="octorant_message">
+        <h5>{{ _("Progress settings") }}</h5>
+        <p>{{ _("Octorant includes a smart notification algorithm that you can tune to your preferences.") }}</p>
+
+        <div class="control-group">
+            <label class="control-label">Completion percentage</label>
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" data-bind="checked: progress.percentage_enabled"/>
+                    Enabled
+                </label>
+            </div>
+        </div>
+        <div class="control-group" data-bind="visible: progress.percentage_enabled">
+            <div class="controls">
+                <label>
+                    {{ _("Notify every: ") }}
+                    <div class="input-append">
+                        <input type="number" min="1" max="100" step="1" class="input-mini text-right" data-bind="textInput: progress.percentage_step">
+                        <span class="add-on">%</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Timed interval</label>
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" data-bind="checked: progress.time_enabled"/>
+                    Enabled
+                </label>
+            </div>
+        </div>
+        <div class="control-group" data-bind="visible: progress.time_enabled">
+            <div class="controls">
+                <label>
+                    {{ _("Notify every: ") }}
+                    <div class="input-append">
+                        <input type="number" min="1" step="1" class="input-mini text-right" data-bind="textInput: progress.time_step">
+                        <span class="add-on">seconds</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Height</label>
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" data-bind="checked: progress.height_enabled"/>
+                    Enabled
+                </label>
+            </div>
+        </div>
+        <div class="control-group" data-bind="visible: progress.height_enabled">
+            <div class="controls">
+                <label>
+                    {{ _("Notify every: ") }}
+                    <div class="input-append">
+                        <input type="number" min="0" step="0.01" class="input-mini text-right" data-bind="textInput: progress.height_step">
+                        <span class="add-on">mm</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Throttle notifications</label>
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" data-bind="checked: progress.throttle_enabled"/>
+                    Enabled
+                </label>
+            </div>
+        </div>
+        <div class="control-group" data-bind="if: progress.throttle_enabled">
+            <div class="controls">
+                <label>
+                    {{ _("Minimum time between notifications: ") }}
+                    <div class="input-append">
+                        <input type="number" min="1" class="input-mini text-right" data-bind="textInput: progress.throttle_step">
+                        <span class="add-on">seconds</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

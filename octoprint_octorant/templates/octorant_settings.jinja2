@@ -3,19 +3,19 @@
     <div class="control-group">
         <label class="control-label">{{ _('Webhook URL') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.url">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.url">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">{{ _('Bot Name') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.username">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.username">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">{{ _('Bot Avatar URL') }}</label>
         <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.avatar">
+            <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.avatar">
         </div>
     </div>
     <div style="clear:both">
@@ -23,48 +23,57 @@
     </div>
 </form>
 <h3>{{ _('Messages settings') }}</h3>
-<form class="form-horizontal" data-bind="foreach: {data:Object.keys(settings.plugins.octorant.events) }">
-    <div class="octorant_message" data-bind="visible: $parent.settings.plugins.octorant.events[$data].name">
-        <h4>
-            <input type="checkbox" class="" data-bind="checked: $parent.settings.plugins.octorant.events[$data].enabled"/>
-            <span data-bind="text: $parent.settings.plugins.octorant.events[$data].name"></span>
-        </h4>
-        <div class="control-group">
-            <label class="control-label">{{ _("Message") }}</label>
-            <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: $parent.settings.plugins.octorant.events[$data].message"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">{{ _("Include snapshot") }}</label>
-            <div class="controls">
-                <input type="checkbox" data-bind="checked: $parent.settings.plugins.octorant.events[$data].with_snapshot"/>
-            </div>
-        </div>
-        <div class="control-group" data-bind="if: $parent.settings.plugins.octorant.events[$data].step">
-            <label class="control-label">{{ _("Notify every") }}</label>
-            <div class="controls">
-                <input type="number" min="1" max="100" step="1" data-bind="value: $parent.settings.plugins.octorant.events[$data].step"/>%
-            </div>
-        </div>
-    </div>
+<form class="form-horizontal">
+    <h4>
+        <span>{{ _("System") }}</span>
+    </h4>
+    {% include "messages_system.jinja2" %}
+    <h4>
+        <span>{{ _("Printer") }}</span>
+    </h4>
+    {% include "messages_printer.jinja2" %}
+    <h4>
+        <span>{{ _("Transfer to SD card") }}</span>
+    </h4>
+    {% include "messages_transfer.jinja2" %}
+    <h4>
+        <span>{{ _("Prints") }}</span>
+    </h4>
+    {% include "messages_prints.jinja2" %}
+    <h4>
+        <span>{{ _("Printing Progress") }}</span>
+    </h4>
+    {% include "messages_progress.jinja2" %}
+    <h4>
+        <span>{{ _("Timelapses") }}</span>
+    </h4>
+    {% include "messages_timelapse.jinja2" %}
 </form>
 <h3>Scripts settings</h3>
 <form class="form-horizontal">
     <div style="clear:both">
         <p>{{ _("To modify these settings, you need to set") }} <code>allow_scripts: true</code> {{ _("in your configuration file.") }}</p>
     </div>
-    <div  data-bind="visible: settings.plugins.octorant.allow_scripts">
+    <div  data-bind="visible: settings.settings.plugins.octorant.allow_scripts">
+        <div class="alert">
+            <p>Those settings are now <strong>deprecated</strong> and will be removed in the next release.</p>
+            <p>
+                Instead of having specific and limited script support here, OctoRant now takes advantage of the <strong>Event Manager</strong> 
+                and offers two specific events there: <code>plugin_octorant_before_notify</code> and <code>plugin_octorant_after_notify</code>.
+            </p>
+            <p>Those settings are much more powerful and supports also sending GCode to your printer.</p>
+            <p>Please migrate your configuration to the Event Manager as soon as you can. Due to low use of this feature, the scripts configured here <strong>won't be migrated</strong> when the feature is removed.</p>
+        </div>
         <div class="control-group">
             <label class="control-label">{{ _('Before message, start:') }}</label>
             <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.script_before">
+                <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.script_before">
             </div>
         </div>
         <div class="control-group">
             <label class="control-label">{{ _('After message, start:') }}</label>
             <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.octorant.script_after">
+                <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.octorant.script_after">
             </div>
         </div>
         <div style="clear:both">

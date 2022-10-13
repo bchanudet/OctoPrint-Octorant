@@ -1,0 +1,101 @@
+<div class="octorant_category">
+    <!-- printer_state_operational -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['printer_state_operational'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['printer_state_operational'].enabled"/>
+            <span>{{ _("New state: Operational") }}</span>
+        </h5>
+        <div data-bind="visible: events['printer_state_operational'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_printer_state_operational" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_printer_state_operational" 
+                        data-bind="textInput: events['printer_state_operational'].message"
+                    />
+                    <span class="help-inline" data-bind="if: events['printer_state_operational'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printer_state_operational'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
+                </div>
+                    
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_printer_state_operational" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_printer_state_operational" data-bind="value: events['printer_state_operational'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- printer_state_error -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['printer_state_error'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['printer_state_error'].enabled"/>
+            <span>{{ _("New state: Error") }}</span>
+        </h5>
+        <div data-bind="visible: events['printer_state_error'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_printer_state_error" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_printer_state_error" 
+                        data-bind="textInput: events['printer_state_error'].message"
+                    />
+                    <span class="help-inline" data-bind="if: events['printer_state_error'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printer_state_error'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_printer_state_error" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_printer_state_error" data-bind="value: events['printer_state_error'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- printer_state_unknown -->    
+    <div class="octorant_message" data-bind="css: {inactive: (events['printer_state_unknown'].enabled() == false)}">
+        <h5>
+            <input type="checkbox" class="" data-bind="checked: events['printer_state_unknown'].enabled"/>
+            <span>{{ _("New state: Error") }}</span>
+        </h5>
+        <div data-bind="visible: events['printer_state_unknown'].enabled">
+            <div class="control-group">
+                <label class="control-label" for="octorant_message_printer_state_unknown" >{{ _("Message") }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="octorant_message_printer_state_unknown" 
+                        data-bind="textInput: events['printer_state_unknown'].message"
+                    />
+                    <span class="help-inline" data-bind="if: events['printer_state_unknown'].variables().length > 0">
+                        <small>Variables:</small>
+                        <small data-bind="foreach: events['printer_state_unknown'].variables">
+                            <code>{<!--ko text: $data--><!--/ko-->}</code>
+                        </small>
+                    </span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_media_printer_state_unknown" >{{ _("Include media") }}</label>
+                <div class="controls">
+                    <select id="octorant_media_printer_state_unknown" data-bind="value: events['printer_state_unknown'].media">
+                        <option value="none">{{ _("None") }}</option>
+                        <option value="snapshot">{{ _("Webcam snapshot") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
