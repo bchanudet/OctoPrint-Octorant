@@ -5,10 +5,15 @@ from email.mime import base
 import requests
 import os
 import base64
+import re
 
 from PIL import Image
 from io import BytesIO
 
+GCODE_COMMENT_LINE_PREFIX = ';'
+MAX_THUMBNAIL_SIZE_BYTES = 8192
+
+regexThumbnailDelimiter = re.compile("^thumbnail (begin [0-9]+x[0-9]+ ([0-9]+)|end)")
 
 class Media:
 
@@ -64,6 +69,7 @@ class Media:
     def __grab_gcode_thumbnail(self):
         thumbnailB64 = ""
         thumbnailBegan = False
+        thumbnailLastSize = -1
 
         if os.path.exists(self.filePath) == False: 
             self.logger.debug("Gcode file not found: {}".format(self.filePath))
@@ -71,15 +77,37 @@ class Media:
 
         with open(self.filePath, 'r') as f:
             for line in f:
-                if line.startswith("; thumbnail begin"):
-                    thumbnailBegan = True
-                elif line.startswith("; thumbnail end"):
-                    thumbnailBegan = False
-                elif line.startswith("; ") and thumbnailBegan:
-                    thumbnailB64 += line.removeprefix("; ").removesuffix('\n')
-                elif line.startswith("G1"):
+                if not line.startswith(GCODE_COMMENT_LINE_PREFIX):
+                    # skip lines that are not full-line comments
+                    continue
+
+                if line.startswith("G1"):
                     # we hit first actions to the printer, better to stop now.
                     break
+
+                # remove prefix and space/newline chars
+                strippedLine = line[len(GCODE_COMMENT_LINE_PREFIX):].strip()
+
+                match = regexThumbnailDelimiter.match(strippedLine)
+                if match:
+                    if match.group(1).startswith("begin"):
+                        thumbnailSize = int(match.group(2))
+                        self.logger.debug("Found thumbnail of {} bytes".format(thumbnailSize))
+                        if thumbnailSize > thumbnailLastSize:
+                            thumbnailBegan = True
+                            thumbnailLastSize = thumbnailSize
+                            thumbnailB64 = ""
+                        else:
+                            self.logger.debug("Skipped, already got a bigger thumbnail")
+                            thumbnailBegan = False
+                            thumbnailB64 = ""
+                            continue
+
+                    elif match.group(1).startswith("end"):
+                        thumbnailBegan = False
+                else:
+                    if thumbnailBegan:
+                        thumbnailB64 += strippedLine
         
         if len(thumbnailB64) > 0:
             return {'file': ("thumbnail.png", base64.b64decode(thumbnailB64))}
