@@ -362,9 +362,7 @@ class OctorantPlugin(
 		except KeyError as error:
 			# Detected some tags that are not found in the payload
 			message = event_configuration["message"] + \
-				"""\r\n:sos: **OctoRant Warning**""" + \
-				"""\r\n The variable `{""" +  error.args[0] +"""}` is invalid for this message: """ + \
-				"""\r\n Available variables: `{""" + '}`, `{'.join(list(data)) +"}`"
+				"""\r\n:sos: **OctoRant Error**: unknown variable `{""" +  error.args[0] +"""}`."""
 		finally:
 
 			# Let's get some media
