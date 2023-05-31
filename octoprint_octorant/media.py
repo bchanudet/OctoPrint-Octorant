@@ -93,7 +93,12 @@ class Media:
                     if match.group(1).startswith("begin"):
                         thumbnailSize = int(match.group(2))
                         self.logger.debug("Found thumbnail of {} bytes".format(thumbnailSize))
-                        if thumbnailSize > thumbnailLastSize:
+                        
+                        if thumbnailSize > MAX_THUMBNAIL_SIZE_BYTES:
+                            self.logger.debug("Skipped, bigger than threshold")
+                            thumbnailBegan = False
+                            thumbnailB64 = ""
+                        elif thumbnailSize > thumbnailLastSize:
                             thumbnailBegan = True
                             thumbnailLastSize = thumbnailSize
                             thumbnailB64 = ""
