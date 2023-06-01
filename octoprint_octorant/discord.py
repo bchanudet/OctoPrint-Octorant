@@ -5,6 +5,7 @@
 import logging
 import time
 import requests
+import sys
 
 from threading import Thread
 from octoprint.util import TypedQueue
@@ -135,6 +136,11 @@ class DiscordMessage(Thread):
                 self._logger.error(
                     "ConnectionError triggered when sending message to Discord"
                 )
+
+            except:
+                # In case of a general exception, return so that the thread gets killed and restart correctly next time.
+                self._logger.error(sys.exc_info())
+                return
 
             finally:
                 self.queue.task_done()
