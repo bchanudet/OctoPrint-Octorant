@@ -4,6 +4,12 @@ import requests
 import os
 import base64
 import re
+import sys
+
+from octoprint.util.version import is_octoprint_compatible
+
+if is_octoprint_compatible(">=1.9"):
+    from octoprint.webcams import get_snapshot_webcam
 
 from PIL import Image
 from io import BytesIO
@@ -121,53 +127,81 @@ class Media:
     def __grab_snapshot(self):
         # output variable
         snapshot = None
+        snapshotImage = None
 
-        # request a snapshot from the URL
-        try:
-            snapshotCall = requests.get(self.url)
+        if is_octoprint_compatible(">=1.9"):
+            # OctoPrint 1.9+: Use the new functions to get the snapshot
+            webcam = get_snapshot_webcam()
 
-            if snapshotCall:
+            if webcam is not None:
+                self.mustFlipH = webcam.config.flipH
+                self.mustFlipV = webcam.config.flipV
+                self.mustRotate = webcam.config.rotate90
+                snap = webcam.providerPlugin.take_webcam_snapshot(webcam.config.name)
+                image = bytes().join(snap)
+                self.logger.debug("Got snapshot of {} bytes".format(len(image)))
+                snapshotImage = BytesIO(image)
+
+        else:
+            # request a snapshot from the URL
+            try:
+                snapshotCall = requests.get(self.url, stream=True)
                 snapshotImage = BytesIO(snapshotCall.content)
+            except requests.ConnectTimeout:
+                snapshotImage = None
+                self.logger.error("Error while fetching snapshot: ConnectTimeout")
+            except requests.ConnectionError:
+                snapshotImage = None
+                self.logger.error("Error while fetching snapshot: ConnectTimeout")
 
-                # Only call Pillow if we need to transpose anything
-                if self.mustFlipH or self.mustFlipV or self.mustRotate:
-                    img = Image.open(snapshotImage)
+        if snapshotImage is None:
+            self.logger.error("Snapshot is empty")
+            return None
 
-                    self.logger.debug(
-                        "Transformations on snapshot :"
-                        + "FlipH={}, FlipV={} Rotate={}".format(
-                            self.mustFlipH, self.mustFlipV, self.mustRotate
-                        )
-                    )
+        # Only call Pillow if we need to transpose anything
+        if self.mustFlipH or self.mustFlipV or self.mustRotate:
+            self.logger.debug(
+                "Transformations on snapshot :"
+                + "FlipH={}, FlipV={} Rotate={}".format(
+                    self.mustFlipH, self.mustFlipV, self.mustRotate
+                )
+            )
 
-                    if self.mustFlipH:
-                        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+            try:
+                img = Image.open(snapshotImage)
 
-                    if self.mustFlipV:
-                        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+                if self.mustFlipH:
+                    img = img.transpose(Image.FLIP_LEFT_RIGHT)
 
-                    if self.mustRotate:
-                        img = img.transpose(Image.ROTATE_90)
+                if self.mustFlipV:
+                    img = img.transpose(Image.FLIP_TOP_BOTTOM)
 
-                    newImage = BytesIO()
-                    img.save(newImage, "png")
+                if self.mustRotate:
+                    img = img.transpose(Image.ROTATE_90)
 
-                    snapshotImage = newImage
+                newImage = BytesIO()
+                img.save(newImage, "jpeg")
 
-                snapshot = {"file": ("snapshot.png", snapshotImage.getvalue())}
+                snapshotImage = newImage.getvalue()
+            except:
+                self.logger.error(sys.exc_info())
 
-        except requests.ConnectTimeout:
-            snapshot = None
-            self.logger.error("Error while fetching snapshot: ConnectTimeout")
-        except requests.ConnectionError:
-            snapshot = None
-            self.logger.error("Error while fetching snapshot: ConnectTimeout")
+            finally:
+                if len(snapshotImage) == 0:
+                    self.logger.error("Snapshot result is empty")
+                    return None
+
+        snapshot = {"file": ("snapshot.jpg", snapshotImage)}
 
         return snapshot
 
     def __grab_file(self):
         if os.path.exists(self.filePath) is False:
             self.logger.debug("Media not found: {}".format(self.filePath))
+            return None
+
+        if os.stat(self.filePath).st_size <= 0:
+            self.logger.debug("Media seems empty")
             return None
 
         if (
