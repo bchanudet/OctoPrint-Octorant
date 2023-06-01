@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from ast import Pass
-from email.mime import base
 import requests
 import os
 import base64
