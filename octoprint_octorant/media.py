@@ -8,13 +8,13 @@ import re
 from PIL import Image
 from io import BytesIO
 
-GCODE_COMMENT_LINE_PREFIX = ';'
+GCODE_COMMENT_LINE_PREFIX = ";"
 MAX_THUMBNAIL_SIZE_BYTES = 8192
 
-regexThumbnailDelimiter = re.compile("^thumbnail (begin [0-9]+x[0-9]+ ([0-9]+)|end)")
+reThumbDelim = re.compile("^thumbnail (begin [0-9]+x[0-9]+ ([0-9]+)|end)")
+
 
 class Media:
-
     def __init__(self, settings, logger):
         self.settings = settings
         self.logger = logger
@@ -32,7 +32,6 @@ class Media:
 
         # For timelapse
         self.maxAcceptedSize = 0
-        
 
     def set_thumbnail(self, filePath):
         self.logger.debug("Media is thumbnail: {}".format(filePath))
@@ -47,12 +46,11 @@ class Media:
         self.mustFlipV = mustFlipV
         self.mustRotate = mustRotate
 
-    def set_timelapse(self, filePath, maxAcceptedSize = 0):
+    def set_timelapse(self, filePath, maxAcceptedSize=0):
         self.logger.debug("Media is timelapse: {}".format(filePath))
         self.type = "timelapse"
         self.filePath = filePath
         self.maxAcceptedSize = maxAcceptedSize
-        
 
     def get(self):
         if self.type == "thumbnail":
@@ -69,11 +67,11 @@ class Media:
         thumbnailBegan = False
         thumbnailLastSize = -1
 
-        if os.path.exists(self.filePath) == False: 
+        if os.path.exists(self.filePath) is False:
             self.logger.debug("Gcode file not found: {}".format(self.filePath))
             return None
 
-        with open(self.filePath, 'r') as f:
+        with open(self.filePath, "r") as f:
             for line in f:
                 if not line.startswith(GCODE_COMMENT_LINE_PREFIX):
                     # skip lines that are not full-line comments
@@ -84,16 +82,18 @@ class Media:
                     break
 
                 # remove prefix and space/newline chars
-                strippedLine = line[len(GCODE_COMMENT_LINE_PREFIX):].strip()
+                strippedLine = line[len(GCODE_COMMENT_LINE_PREFIX) :].strip()
 
-                match = regexThumbnailDelimiter.match(strippedLine)
+                match = reThumbDelim.match(strippedLine)
                 if match:
                     if match.group(1).startswith("begin"):
                         thumbnailSize = int(match.group(2))
-                        self.logger.debug("Found thumbnail of {} bytes".format(thumbnailSize))
-                        
+                        self.logger.debug(
+                            "Found thumbnail of {} bytes".format(thumbnailSize)
+                        )
+
                         if thumbnailSize > MAX_THUMBNAIL_SIZE_BYTES:
-                            self.logger.debug("Skipped, bigger than threshold")
+                            self.logger.debug("skip, bigger than threshold")
                             thumbnailBegan = False
                             thumbnailB64 = ""
                         elif thumbnailSize > thumbnailLastSize:
@@ -101,7 +101,7 @@ class Media:
                             thumbnailLastSize = thumbnailSize
                             thumbnailB64 = ""
                         else:
-                            self.logger.debug("Skipped, already got a bigger thumbnail")
+                            self.logger.debug("skip, already got one bigger")
                             thumbnailBegan = False
                             thumbnailB64 = ""
                             continue
@@ -111,12 +111,12 @@ class Media:
                 else:
                     if thumbnailBegan:
                         thumbnailB64 += strippedLine
-        
+
         if len(thumbnailB64) > 0:
-            return {'file': ("thumbnail.png", base64.b64decode(thumbnailB64))}
+            return {"file": ("thumbnail.png", base64.b64decode(thumbnailB64))}
 
         self.logger.debug("No thumbnail found")
-        return None      
+        return None
 
     def __grab_snapshot(self):
         # output variable
@@ -126,18 +126,23 @@ class Media:
         try:
             snapshotCall = requests.get(self.url)
 
-            if snapshotCall :
-                snapshotImage = BytesIO(snapshotCall.content)				
+            if snapshotCall:
+                snapshotImage = BytesIO(snapshotCall.content)
 
                 # Only call Pillow if we need to transpose anything
-                if (self.mustFlipH or self.mustFlipV or self.mustRotate): 
+                if self.mustFlipH or self.mustFlipV or self.mustRotate:
                     img = Image.open(snapshotImage)
 
-                    self.logger.debug("Transformations on snapshot : FlipH={}, FlipV={} Rotate={}".format(self.mustFlipH, self.mustFlipV, self.mustRotate))
+                    self.logger.debug(
+                        "Transformations on snapshot :"
+                        + "FlipH={}, FlipV={} Rotate={}".format(
+                            self.mustFlipH, self.mustFlipV, self.mustRotate
+                        )
+                    )
 
                     if self.mustFlipH:
                         img = img.transpose(Image.FLIP_LEFT_RIGHT)
-                    
+
                     if self.mustFlipV:
                         img = img.transpose(Image.FLIP_TOP_BOTTOM)
 
@@ -145,11 +150,11 @@ class Media:
                         img = img.transpose(Image.ROTATE_90)
 
                     newImage = BytesIO()
-                    img.save(newImage,'png')			
+                    img.save(newImage, "png")
 
-                    snapshotImage = newImage	
+                    snapshotImage = newImage
 
-                snapshot = {'file': ("snapshot.png", snapshotImage.getvalue())}
+                snapshot = {"file": ("snapshot.png", snapshotImage.getvalue())}
 
         except requests.ConnectTimeout:
             snapshot = None
@@ -157,19 +162,22 @@ class Media:
         except requests.ConnectionError:
             snapshot = None
             self.logger.error("Error while fetching snapshot: ConnectTimeout")
-        
+
         return snapshot
 
     def __grab_file(self):
-        if os.path.exists(self.filePath) == False:
+        if os.path.exists(self.filePath) is False:
             self.logger.debug("Media not found: {}".format(self.filePath))
             return None
 
-        if self.maxAcceptedSize > 0 and os.stat(self.filePath).st_size > self.maxAcceptedSize:
+        if (
+            self.maxAcceptedSize > 0
+            and os.stat(self.filePath).st_size > self.maxAcceptedSize
+        ):
             self.logger.debug("Media bigger than max allowed size")
             return None
 
-        with open(self.filePath,"rb") as f:
-            return {'file': (os.path.basename(self.filePath), f.read())}
+        with open(self.filePath, "rb") as f:
+            return {"file": (os.path.basename(self.filePath), f.read())}
 
         return None
