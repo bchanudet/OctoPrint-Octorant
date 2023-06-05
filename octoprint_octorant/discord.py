@@ -1,14 +1,16 @@
-#coding: utf-8
+# coding: utf-8
 
 # Simple module to send messages through a Discord WebHook
 
 import logging
 import time
 import requests
+import sys
 
 from threading import Thread
 from octoprint.util import TypedQueue
 from .media import Media
+
 
 class Message:
     def __init__(self, content: str, media: Media = None) -> None:
@@ -17,9 +19,8 @@ class Message:
 
 
 class DiscordMessage(Thread):
-
     def __init__(self, logger: logging.Logger):
-        Thread.__init__(self,daemon=True)
+        Thread.__init__(self, daemon=True)
 
         self._logger = logger
 
@@ -37,22 +38,27 @@ class DiscordMessage(Thread):
         self.avatar = avatar
         self.thread_id = thread_id
 
-    def send_message(self, content: str, media:Media=None):
+    def send_message(self, content: str, media: Media = None):
         if self.stop_until > time.time():
-            self._logger.debug("Rate limited by Discord until: {}". format(self.stop_until))
+            self._logger.debug(
+                "Rate limited by Discord until: {}".format(self.stop_until)
+            )
             return
 
         # Setup variables
         message = Message(content, media)
 
-        self._logger.debug("Adding message to queue: {} (rate-limit: {})".format(message.content, self.stop_until))
+        self._logger.debug(
+            "Adding message to queue: {} (rate-limit: {})".format(
+                message.content, self.stop_until
+            )
+        )
         self.queue.put(message)
 
-        if self.is_alive() == False:
+        if self.is_alive() is False:
             self.start()
 
         return
-
 
     def run(self):
         while True:
@@ -60,7 +66,9 @@ class DiscordMessage(Thread):
 
             if self.stop_until > time.time():
                 self.queue.task_done()
-                self._logger.warn("Message not sent because of rate-limiting until {}". format(self.stop_until))
+                self._logger.warn(
+                    "Not sent because of rate-limiting until {}".format(self.stop_until)
+                )
                 continue
 
             file = None
@@ -82,38 +90,57 @@ class DiscordMessage(Thread):
 
             # Setup the payload
             payload = {
-                'content': message.content,
+                "content": message.content,
             }
 
             if self.username != "":
-                payload['username'] = self.username
+                payload["username"] = self.username
 
             if self.avatar != "":
-                payload['avatar_url'] = self.avatar
+                payload["avatar_url"] = self.avatar
 
             try:
-                response : requests.Response = requests.post(
-                    self.url + ("?thread_id={}".format(self.thread_id) if self.thread_id > 0 else ""),
+                response: requests.Response = requests.post(
+                    self.url
+                    + (
+                        "?thread_id={}".format(self.thread_id)
+                        if self.thread_id > 0
+                        else ""
+                    ),
                     files=file,
                     data=payload,
-                    timeout=60
+                    timeout=60,
                 )
 
                 if response.status_code == 429:
                     data = response.json()
-                    if(int(data["retry_after"]) > 0):
-                        self.stop_until = time.time() + (int(data["retry_after"])/1000)
+                    if int(data["retry_after"]) > 0:
+                        self.stop_until = time.time() + (
+                            int(data["retry_after"]) / 1000
+                        )
 
                     self._logger.debug(data)
-                    self._logger.warn("Rate limited by Discord API. Won't send message until {}".format(self.stop_until))
+                    self._logger.warn(
+                        "Rate limited by Discord API. Won't send message until {}".format(
+                            self.stop_until
+                        )
+                    )
                 else:
                     self.stop_until = 0
 
-
             except requests.ConnectTimeout:
-                self._logger.error("ConnectTimeout triggered when sending message to Discord")
+                self._logger.error(
+                    "ConnectTimeout triggered when sending message to Discord"
+                )
             except requests.ConnectionError:
-                self._logger.error("ConnectionError triggered when sending message to Discord")
+                self._logger.error(
+                    "ConnectionError triggered when sending message to Discord"
+                )
+
+            except:
+                # In case of a general exception, return so that the thread gets killed and restart correctly next time.
+                self._logger.error(sys.exc_info())
+                return
 
             finally:
                 self.queue.task_done()
