@@ -44,13 +44,15 @@ class Media:
         self.type = "thumbnail"
         self.filePath = filePath
 
-    def set_snapshot(self, url, mustFlipH, mustFlipV, mustRotate):
+    def set_snapshot(self, url="", mustFlipH=False, mustFlipV=False, mustRotate=False):
         self.logger.debug("Media is snapshot: {}".format(url))
         self.type = "snapshot"
-        self.url = url
-        self.mustFlipH = mustFlipH
-        self.mustFlipV = mustFlipV
-        self.mustRotate = mustRotate
+
+        if is_octoprint_compatible("<1.9"):
+            self.url = url
+            self.mustFlipH = mustFlipH
+            self.mustFlipV = mustFlipV
+            self.mustRotate = mustRotate
 
     def set_timelapse(self, filePath, maxAcceptedSize=0):
         self.logger.debug("Media is timelapse: {}".format(filePath))

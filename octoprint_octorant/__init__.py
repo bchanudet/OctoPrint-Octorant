@@ -11,6 +11,8 @@ import os
 
 from octoprint.events import Events, eventManager
 from octoprint.util import RepeatedTimer
+from octoprint.util.version import is_octoprint_compatible
+
 from .discord import DiscordMessage
 from .events import EVENTS
 from .media import Media
@@ -475,18 +477,21 @@ class OctorantPlugin(
                         self._file_manager.path_on_disk(data["origin"], data["path"])
                     )
                 elif event_configuration["media"] == "snapshot":
-                    media.set_snapshot(
-                        url=self._settings.global_get(["webcam", "snapshot"]),
-                        mustFlipH=self._settings.global_get_boolean(
-                            ["webcam", "flipH"]
-                        ),
-                        mustFlipV=self._settings.global_get_boolean(
-                            ["webcam", "flipV"]
-                        ),
-                        mustRotate=self._settings.global_get_boolean(
-                            ["webcam", "rotate90"]
-                        ),
-                    )
+                    if is_octoprint_compatible(">=1.9"):
+                        media.set_snapshot()
+                    else:
+                        media.set_snapshot(
+                            url=self._settings.global_get(["webcam", "snapshot"]),
+                            mustFlipH=self._settings.global_get_boolean(
+                                ["webcam", "flipH"]
+                            ),
+                            mustFlipV=self._settings.global_get_boolean(
+                                ["webcam", "flipV"]
+                            ),
+                            mustRotate=self._settings.global_get_boolean(
+                                ["webcam", "rotate90"]
+                            ),
+                        )
                 elif event_configuration["media"] == "timelapse":
                     media.set_timelapse(filePath=data["movie"])
 
