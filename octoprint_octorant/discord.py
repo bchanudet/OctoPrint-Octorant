@@ -6,9 +6,9 @@ import logging
 import time
 import requests
 import sys
+import queue
 
 from threading import Thread
-from octoprint.util import TypedQueue
 from .media import Media
 
 
@@ -29,8 +29,11 @@ class DiscordMessage(Thread):
         self.avatar = ""
         self.thread_id = 0
 
-        self.queue = TypedQueue()
+        self.queue = queue.Queue()
         self.stop_until = 0
+
+        self.start()
+        self._logger.debug("Discord thread has started")
 
     def set_config(self, url, username="", avatar="", thread_id=0):
         self.url = url
@@ -54,11 +57,6 @@ class DiscordMessage(Thread):
             )
         )
         self.queue.put(message)
-
-        if self.is_alive() is False:
-            self.start()
-
-        return
 
     def run(self):
         while True:
