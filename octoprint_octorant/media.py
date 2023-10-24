@@ -15,7 +15,7 @@ from PIL import Image
 from io import BytesIO
 
 GCODE_COMMENT_LINE_PREFIX = ";"
-MAX_THUMBNAIL_SIZE_BYTES = 8192
+MAX_THUMBNAIL_SIZE_BYTES = 8192 * 1024
 
 reThumbDelim = re.compile("^thumbnail (begin [0-9]+x[0-9]+ ([0-9]+)|end)")
 
