@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 import octoprint.settings
 import octoprint.util
+import urllib.parse
 import subprocess
 import datetime
 import time
@@ -455,6 +456,8 @@ class OctorantPlugin(
         # Alter a bit the payload to offer more variables
         if "time" in data:
             data["time_formatted"] = str(datetime.timedelta(seconds=int(data["time"])))
+        if "movie_basename" in data:
+            data["movie_basename_uri"] = urllib.parse.quote(data["movie_basename"])
 
         self._logger.debug(
             "Available variables for event " + eventID + ": " + ", ".join(list(data))

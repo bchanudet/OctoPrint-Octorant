@@ -135,7 +135,7 @@ EVENTS = {
         "enabled": False,
         "media": "timelapse",
         "message": "🎥 Timelapse has been created: {movie_basename}",
-        "variables": ["gcode", "movie", "movie_basename", "movie_prefix"],
+        "variables": ["gcode", "movie", "movie_basename", "movie_basename_uri", "movie_prefix"],
     },
     "timelapse_failed": {
         "enabled": False,
