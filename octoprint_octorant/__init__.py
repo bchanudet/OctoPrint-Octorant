@@ -332,8 +332,8 @@ class OctorantPlugin(
             )
             == True
         ):
-            if int(printer_data["progress"]["completion"]) > 0:
-                if int(printer_data["progress"]["completion"]) > (
+            if int(printer_data["progress"]["completion"]) > 0 and int(printer_data["progress"]["completion"]) > self.lastProgressPercent :
+                if int(printer_data["progress"]["completion"]) >= (
                     self.lastProgressPercent
                     + self._settings.get_int(
                         ["progress", "percentage_step"], merged=True
