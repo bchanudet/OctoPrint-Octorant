@@ -266,7 +266,11 @@ class OctorantPlugin(
             return True
 
         # Helps discovering new events that ae not documented
-        self._logger.debug("Event {} was not handled".format(event))
+        logMsg = "Event {} was not handled.".format(event)
+        if payload is not None:
+            logMsg += " Available payload: {}".format(', '.join(list(payload)))
+
+        self._logger.debug(logMsg)
         return True
 
     def start_progress_check(self):
@@ -451,7 +455,7 @@ class OctorantPlugin(
 
     def notify_event(self, eventID, data={}):
         if eventID not in self.events:
-            self._logger.error("Tried to notifiy on inexistant eventID : ", eventID)
+            self._logger.error("Tried to notifiy on inexistant eventID: {}".format(eventID))
             return False
 
         event_configuration = self._settings.get(["events", eventID], merged=True)
