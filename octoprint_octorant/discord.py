@@ -20,7 +20,7 @@ class Message:
 
 class DiscordMessage(Thread):
     def __init__(self, logger: logging.Logger):
-        Thread.__init__(self, daemon=True)
+        Thread.__init__(self, daemon=True, name="octorant-discord-sender")
 
         self._logger = logger
 
