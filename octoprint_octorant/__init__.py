@@ -198,12 +198,16 @@ class OctorantPlugin(
 
         # Printer
         if event == Events.PRINTER_STATE_CHANGED:
-            if payload["state_id"] == "OPERATIONAL":
+            if payload["state_id"] == "CONNECTING":
+                return self.notify_event("printer_state_connecting")
+            elif payload["state_id"] == "OPERATIONAL":
                 return self.notify_event("printer_state_operational")
             elif payload["state_id"] == "ERROR":
                 return self.notify_event("printer_state_error")
             elif payload["state_id"] == "UNKNOWN":
                 return self.notify_event("printer_state_unknown")
+            elif payload["state_id"] == "OFFLINE":
+                return self.notify_event("printer_state_offline")
             else:
                 self._logger.debug(
                     "Event {}/{} was not handled".format(event, payload["state_id"])

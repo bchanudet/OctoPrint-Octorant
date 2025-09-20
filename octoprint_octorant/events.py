@@ -13,6 +13,12 @@ EVENTS = {
         "variables": [],
     },
     # PRINTER EVENTS
+    "printer_state_connecting": {
+        "enabled": False,
+        "media": "",
+        "message": "🔌 OctoPrint is connecting to your printer.",
+        "variables": [],
+    },
     "printer_state_operational": {
         "enabled": True,
         "media": "",
@@ -29,6 +35,12 @@ EVENTS = {
         "enabled": True,
         "media": "",
         "message": "❔ Your printer is in an unknown state.",
+        "variables": [],
+    },
+    "printer_state_offline": {
+        "enabled": False,
+        "media": "",
+        "message": "❌ Your printer is offline.",
         "variables": [],
     },
     # PRINTS EVENTS
