@@ -255,6 +255,10 @@ class OctorantPlugin(
             return self.notify_event("timelapse_done", payload)
         if event == Events.MOVIE_FAILED:
             return self.notify_event("timelapse_failed", payload)
+        
+        # Avoid flooding debug logs with "ZChange was not handled"
+        if event == "ZChange":
+            return True
 
         # Helps discovering new events that ae not documented
         self._logger.debug("Event {} was not handled".format(event))
