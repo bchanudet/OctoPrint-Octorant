@@ -139,10 +139,13 @@ class Media:
                 self.mustFlipH = webcam.config.flipH
                 self.mustFlipV = webcam.config.flipV
                 self.mustRotate = webcam.config.rotate90
-                snap = webcam.providerPlugin.take_webcam_snapshot(webcam.config.name)
-                image = bytes().join(snap)
-                self.logger.debug("Got snapshot of {} bytes".format(len(image)))
-                snapshotImage = BytesIO(image)
+                try:
+                    snap = webcam.providerPlugin.take_webcam_snapshot(webcam.config.name)
+                    image = bytes().join(snap)
+                    self.logger.debug("Got snapshot of {} bytes".format(len(image)))
+                    snapshotImage = BytesIO(image)
+                except:
+                    snapshotImage = None
 
         else:
             # request a snapshot from the URL
