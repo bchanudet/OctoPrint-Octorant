@@ -208,6 +208,7 @@ class OctorantPlugin(
                 self._logger.debug(
                     "Event {}/{} was not handled".format(event, payload["state_id"])
                 )
+                return False
 
         # Prints
         if event == Events.PRINT_STARTED:
