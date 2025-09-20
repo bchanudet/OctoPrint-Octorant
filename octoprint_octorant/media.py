@@ -144,8 +144,9 @@ class Media:
                     image = bytes().join(snap)
                     self.logger.debug("Got snapshot of {} bytes".format(len(image)))
                     snapshotImage = BytesIO(image)
-                except:
+                except Exception as e:
                     snapshotImage = None
+                    self.logger.error("Error while fetching snapshot: {}".format(e))
 
         else:
             # request a snapshot from the URL
@@ -160,7 +161,6 @@ class Media:
                 self.logger.error("Error while fetching snapshot: ConnectTimeout")
 
         if snapshotImage is None:
-            self.logger.error("Snapshot is empty")
             return None
 
         # Only call Pillow if we need to transpose anything
