@@ -9,11 +9,14 @@ import sys
 import queue
 
 from threading import Thread
+from octoprint.events import Events, eventManager
+
 from .media import Media
 
 
 class Message:
-    def __init__(self) -> None:
+    def __init__(self, event_id = "") -> None:
+        self.event_id = event_id
         self.content = ""
         self.media: Media = None
         self.embed = None
@@ -80,6 +83,8 @@ class DiscordSender(Thread):
                 self._logger.debug("DiscordMessage: Content is empty")
                 continue
 
+            eventManager().fire("plugin_octorant_before_notify", {"event": message.event_id })
+
             # Grab the media
             if message.media is not None:
                 file = message.media.get()
@@ -139,4 +144,5 @@ class DiscordSender(Thread):
                 return
 
             finally:
+                eventManager().fire("plugin_octorant_after_notify", {"event": message.event_id})
                 self.queue.task_done()

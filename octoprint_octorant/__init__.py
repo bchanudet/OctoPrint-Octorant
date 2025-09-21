@@ -10,7 +10,6 @@ import datetime
 import time
 import os
 
-from octoprint.events import Events, eventManager
 from octoprint.util import RepeatedTimer
 from octoprint.util.version import is_octoprint_compatible
 
@@ -479,11 +478,12 @@ class OctorantPlugin(
             data["movie_basename_uri"] = urllib.parse.quote(data["movie_basename"])
 
         # Instantiate message
-        message = Message()
+        message = Message(eventID)
 
         self._logger.debug(
             "Available variables for event " + eventID + ": " + ", ".join(list(data))
         )
+
         try:
             message.content = event_configuration["message"].format(**data)
         except KeyError as error:
@@ -523,58 +523,7 @@ class OctorantPlugin(
                 elif event_configuration["media"] == "timelapse":
                     message.media.set_timelapse(filePath=data["movie"])
 
-            return self.send_message(eventID, message)
-
-    def exec_script(self, eventName, which=""):
-        # I want to be sure that the scripts are allowed by the special configuration flag
-        scripts_allowed = self._settings.get(["allow_scripts"], merged=True)
-        if scripts_allowed is None or scripts_allowed == False:
-            return ""
-
-        # Finding which one should be used.
-        script_to_exec = None
-        if which == "before":
-            script_to_exec = self._settings.get(["script_before"], merged=True)
-
-        elif which == "after":
-            script_to_exec = self._settings.get(["script_after"], merged=True)  # type: ignore
-
-        # Finally exec the script
-        out = ""
-        self._logger.debug(
-            "{}:{} File to start: '{}'".format(eventName, which, script_to_exec)
-        )
-
-        try:
-            if (
-                script_to_exec is not None
-                and len(script_to_exec) > 0
-                and os.path.exists(script_to_exec)
-            ):
-                out = subprocess.check_output(script_to_exec)
-        except (OSError, subprocess.CalledProcessError) as err:
-            out = err
-        finally:
-            self._logger.debug("{}:{} > Output: '{}'".format(eventName, which, out))
-            return out
-
-    def send_message(self, eventID, message: Message):
-        # return false if no URL is provided
-        if "http" not in self._settings.get(["url"], merged=True):
-            return False
-
-        # exec "before" script if any
-        eventManager().fire("plugin_octorant_before_notify", {"event": eventID})
-        self.exec_script(eventID, "before")
-
-        # Send to Discord WebHook
-        self.sender.send_message(message)
-
-        # exec "after" script if any
-        self.exec_script(eventID, "after")
-        eventManager().fire("plugin_octorant_after_notify", {"event": eventID})
-
-        return True
+        return self.sender.send_message(message)
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
