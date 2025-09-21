@@ -13,6 +13,7 @@ import os
 
 from octoprint.util import RepeatedTimer, get_formatted_size
 from octoprint.util.version import is_octoprint_compatible
+from octoprint.events import Events
 
 from .discord import DiscordSender, Message
 from .events import EVENTS
@@ -298,12 +299,6 @@ class OctorantPlugin(
         progress_enabled = self._settings.get_boolean(["progress", "percentage_enabled"], merged=True)
         height_enabled = self._settings.get_boolean(["progress", "height_enabled"], merged=True)
 
-        # First we check the throttle and return if we are too early
-        if throttle_enabled == True:
-            throttle_step = self._settings.get_int(["progress", "throttle_step"], merged=True)
-            if time.time() < self.lastProgressNotifiedAt + throttle_step:
-                return
-
         # Get the printer data
         printer_data = self._printer.get_current_data()
 
@@ -317,7 +312,7 @@ class OctorantPlugin(
             time_step = self._settings.get_int(["progress", "time_step"], merged=True)
 
             if current_time > self.lastProgressTime + time_step:
-                self._logger.debug(
+                self._logger.info(
                     "Progress Check: Timer threshold was hit (last: {}, current: {})".format(
                         self.lastProgressTime, current_time
                     )
@@ -326,7 +321,7 @@ class OctorantPlugin(
                 notifyReason = "time"
             else:
                 self._logger.debug(
-                    "Progress Check: Timer not triggerd (last: {}, current: {})".format(
+                    "Progress Check: Timer not triggered (last: {}, current: {})".format(
                         self.lastProgressTime, current_time
                     )
                 )
@@ -340,7 +335,7 @@ class OctorantPlugin(
 
                 if progress_completion > 0 and progress_completion > self.lastProgressPercent :
                     if progress_completion >= self.lastProgressPercent + progress_step:
-                        self._logger.debug(
+                        self._logger.info(
                             "Progress Check: Percentage threshold was hit (last: {}, current: {})".format(
                                 self.lastProgressPercent,
                                 progress_completion,
@@ -350,7 +345,7 @@ class OctorantPlugin(
                         notifyReason = "percentage"
                     else:
                         self._logger.debug(
-                            "Progress Check: Percentage not triggerd (last: {}, current: {})".format(
+                            "Progress Check: Percentage not triggered (last: {}, current: {})".format(
                                 self.lastProgressPercent,
                                 progress_completion,
                             )
@@ -369,7 +364,7 @@ class OctorantPlugin(
                     return
 
                 if currentZ > 0 and currentZ > self.lastProgressHeight + height_step:
-                    self._logger.debug(
+                    self._logger.info(
                         "Progress Check: Height threshold was hit (last: {}, current: {})".format(
                             self.lastProgressHeight, currentZ
                         )
@@ -379,13 +374,20 @@ class OctorantPlugin(
 
                 else:
                     self._logger.debug(
-                        "Progress Check: Height not triggerd (last: {}, current: {})".format(
+                        "Progress Check: Height not triggered (last: {}, current: {})".format(
                             self.lastProgressHeight, currentZ
                         )
                     )
 
         # Alright let's notify if necessary
         if notifyReason != "":
+            # First we check the throttle and return if we are too early
+            if throttle_enabled == True:
+                throttle_step = self._settings.get_int(["progress", "throttle_step"], merged=True)
+                if time.time() < self.lastProgressNotifiedAt + throttle_step:
+                    self._logger.notice("Throttled by settings")
+                    return
+
             self.lastProgressNotifiedAt = time.time()
             payload = {}
             payload["reason"] = notifyReason
@@ -395,6 +397,7 @@ class OctorantPlugin(
 
                 payload["reason"] = notifyReason
                 payload["progress"] = 0
+                payload["progress_formatted"] = "0%"
                 payload["remaining"] = 0
                 payload["remaining_formatted"] = "0s"
                 payload["spent"] = 0
@@ -417,6 +420,9 @@ class OctorantPlugin(
                         payload["progress"] = int(
                             printer_data["progress"]["completion"]
                         )
+                        payload["progress_formatted"] = int(
+                            printer_data["progress"]["completion"]
+                        ) + "%"
 
             self.notify_event(
                 "printing_progress" if not self.uploading else "transfer_progress",
@@ -455,15 +461,36 @@ class OctorantPlugin(
             message.content = event_configuration["message"].format(**data)
         except KeyError as error:
             # Detected some tags that are not found in the payload
-            message.content = (
-                event_configuration["message"]
-                + """\r\n:sos: **OctoRant Error**: unknown variable `{"""
-                + error.args[0]
-                + """}`."""
-            )
+            message.content = event_configuration["message"]
+            message.content += "(:sos: *Error: unknown variable `{}`*)".format(error.args[0])
+            
             self._logger.warning("Unknown variable `{}` in event {}".format(error.args[0], eventID))
-        finally:
-            # Let's get some media
+
+        # Embed
+        if event_configuration["embed_used"]:
+            message.embed = {
+                "title": message.content,
+                "color": event_configuration["embed_color"],
+                "image": { "url": "" },
+                "footer": {
+                    "text": "OctoRant " + self._plugin_version
+                },
+                "fields": []
+            }
+
+            for field in event_configuration["embed_fields"]:
+                new_field = {
+                    "name": field[0],
+                    "value": data[field[1]],
+                    "inline": field[2]
+                } 
+                message.embed["fields"].append(new_field)
+                
+            message.content = "EMBED: " + message.content
+    
+
+        # Media
+        if event_configuration["media"] != "":
             message.media = Media(self._settings, self._logger)
 
             if event_configuration["media"] == "thumbnail":

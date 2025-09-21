@@ -1,9 +1,7 @@
-from enum import Enum
 
-class COLORS(Enum):
-    default = 5793266
-    green = 8319575
-    red = 15882071
+color_default = 5793266
+color_green = 8319575
+color_red = 15882071
 
 EVENTS = {
     # SYSTEM EVENTS
@@ -14,7 +12,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "shutdown": {
         "enabled": True,
@@ -23,7 +21,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     # PRINTER EVENTS
     "printer_state_connecting": {
@@ -33,7 +31,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "printer_state_operational": {
         "enabled": True,
@@ -42,7 +40,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
     "printer_state_error": {
         "enabled": True,
@@ -51,7 +49,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.red
+        "embed_color": color_red
     },
     "printer_state_unknown": {
         "enabled": True,
@@ -60,7 +58,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.red
+        "embed_color": color_red
     },
     "printer_state_offline": {
         "enabled": False,
@@ -69,7 +67,7 @@ EVENTS = {
         "variables": [],
         "embed_used": False,
         "embed_fields": [],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     # PRINTS EVENTS
     "printing_started": {
@@ -82,7 +80,7 @@ EVENTS = {
             ("Name", "name", True),
             ("Size", "size_formatted", True)
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "printing_paused": {
         "enabled": True,
@@ -94,7 +92,7 @@ EVENTS = {
             ("Name", "name", True),
             ("Size", "size_formatted", True)
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "printing_resumed": {
         "enabled": True,
@@ -106,7 +104,7 @@ EVENTS = {
             ("Name", "name", True),
             ("Size", "size_formatted", True)
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "printing_cancelled": {
         "enabled": True,
@@ -127,7 +125,7 @@ EVENTS = {
             ("Name", "name", True),
             ("Size", "size_formatted", True)
         ],
-        "embed_color": COLORS.red
+        "embed_color": color_red
     },
     "printing_done": {
         "enabled": True,
@@ -149,7 +147,7 @@ EVENTS = {
             ("Size", "size_formatted", True),
             ("Time spent", "time_formatted", True)
         ],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
     "printing_failed": {
         "enabled": True,
@@ -177,7 +175,7 @@ EVENTS = {
             ("Stopped at", "progress", False),
             ("Reason", "reason", False)
         ],
-        "embed_color": COLORS.red
+        "embed_color": color_red
     },
     # SD TRANSFERS EVENTS
     "transfer_started": {
@@ -190,7 +188,7 @@ EVENTS = {
             ("Local", "local", False),
             ("Remote", "remote", False)
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "transfer_done": {
         "enabled": False,
@@ -203,7 +201,7 @@ EVENTS = {
             ("Remote", "remote", False),
             ("Time spent", "time_formatted", True)
         ],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
     "transfer_failed": {
         "enabled": False,
@@ -216,7 +214,7 @@ EVENTS = {
             ("Remote", "remote", False),
             ("Time spent", "time_formatted", True)
         ],
-        "embed_color": COLORS.red
+        "embed_color": color_red
     },
     # PROGRESS EVENTS
     "printing_progress": {
@@ -232,20 +230,23 @@ EVENTS = {
             "owner",
             "user",
             "progress",
+            "progress_formatted",
             "spent",
-            "remaining",
             "spent_formatted",
+            "remaining",
             "remaining_formatted",
+            "reason"
         ],        
         "embed_used": False,
         "embed_fields": [
             ("Name", "name", True),
             ("Size", "size_formatted", True),
-            ("Progress", "progress", True),
-            ("Time spent", "time_formatted", True),
+            ("Reason", "reason", True),
+            ("Time spent", "spent_formatted", True),
             ("Remaining", "remaining_formatted", True)
+            ("Progress", "progress_formatted", True),
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     "transfer_progress": {
         "enabled": False,
@@ -256,7 +257,7 @@ EVENTS = {
         "embed_fields": [
             ("Progress", "progress", True)
         ],
-        "embed_color": COLORS.default
+        "embed_color": color_default
     },
     # TIMELAPSES
     "timelapse_done": {
@@ -269,7 +270,7 @@ EVENTS = {
             ("Gcode", "gcode", True),
             ("Filename", "movie_basename", True),
         ],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
     "timelapse_failed": {
         "enabled": False,
@@ -291,7 +292,7 @@ EVENTS = {
             ("Filename", "movie_basename", True),
             ("Reason", "reason", False)
         ],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
     # Not a real message, but we will treat it as one
     "test": {
@@ -301,6 +302,6 @@ EVENTS = {
         "variables": [],
         "embed_used": True,
         "embed_fields": [],
-        "embed_color": COLORS.green
+        "embed_color": color_green
     },
 }

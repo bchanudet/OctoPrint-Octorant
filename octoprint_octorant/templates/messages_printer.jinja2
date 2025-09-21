@@ -31,6 +31,15 @@
                     </select>
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_printer_state_connecting">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_printer_state_connecting" class=""
+                        data-bind="checked: events['printer_state_connecting'].embed_used" />
+                </div>
+            </div>
         </div>
     </div>
 
@@ -67,6 +76,15 @@
                     </select>
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_printer_state_operational">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_printer_state_operational" class=""
+                        data-bind="checked: events['printer_state_operational'].embed_used" />
+                </div>
+            </div>
         </div>
     </div>
 
@@ -98,6 +116,15 @@
                         <option value="none">{{ _("None") }}</option>
                         <option value="snapshot">{{ _("Webcam snapshot") }}</option>
                     </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_printer_state_error">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_printer_state_error" class=""
+                        data-bind="checked: events['printer_state_error'].embed_used" />
                 </div>
             </div>
         </div>
@@ -133,6 +160,15 @@
                     </select>
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_printer_state_unknown">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_printer_state_unknown" class=""
+                        data-bind="checked: events['printer_state_unknown'].embed_used" />
+                </div>
+            </div>
         </div>
     </div>
 
@@ -165,6 +201,15 @@
                         <option value="none">{{ _("None") }}</option>
                         <option value="snapshot">{{ _("Webcam snapshot") }}</option>
                     </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_printer_state_offline">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_printer_state_offline" class=""
+                        data-bind="checked: events['printer_state_offline'].embed_used" />
                 </div>
             </div>
         </div>
