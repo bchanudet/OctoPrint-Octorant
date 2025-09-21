@@ -54,8 +54,12 @@ class DiscordSender(Thread):
             return
 
         self._logger.debug(
-            "Adding message to queue: {} (rate-limit: {})".format(
-                message.content, self.stop_until
+            "Adding message to queue: {}/{}/{} `{}` (rate-limit: {})".format(
+                message.event_id,
+                "embed" if message.embed is not None else "regular",
+                message.media.type if message.media is not None else "no_media",
+                message.content, 
+                self.stop_until
             )
         )
         self.queue.put(message)

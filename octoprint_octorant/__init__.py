@@ -474,10 +474,7 @@ class OctorantPlugin(
                     "value": data[field[1]],
                     "inline": field[2]
                 } 
-                message.embed["fields"].append(new_field)
-                
-            message.content = "EMBED: " + message.content
-    
+                message.embed["fields"].append(new_field)    
 
         # Media
         if event_configuration["media"] != "":
