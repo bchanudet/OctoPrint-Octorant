@@ -10,7 +10,7 @@ import queue
 import json
 
 from threading import Thread
-from octoprint.events import Events, eventManager
+from octoprint.events import eventManager
 
 from .media import Media
 
