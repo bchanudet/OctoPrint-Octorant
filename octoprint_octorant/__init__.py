@@ -2,14 +2,9 @@
 from __future__ import absolute_import
 
 import octoprint.plugin
-import octoprint.settings
-import octoprint.util
 import urllib.parse
-import subprocess
 import datetime
 import time
-import os
-
 
 from octoprint.util import RepeatedTimer, get_formatted_size
 from octoprint.util.version import is_octoprint_compatible
