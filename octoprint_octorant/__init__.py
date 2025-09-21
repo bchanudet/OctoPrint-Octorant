@@ -229,6 +229,12 @@ class OctorantPlugin(
         if event == Events.PRINT_CANCELLED:
             self.stop_progress_check()
             return self.notify_event("printing_cancelled", payload)
+        if event == Events.PRINT_FAILED:
+            self.stop_progress_check()
+            payload["time_formatted"] = str(
+                datetime.timedelta(seconds=int(payload["time"]))
+            )
+            return self.notify_event("printing_failed", payload)
         if event == Events.PRINT_DONE:
             self.stop_progress_check()
             payload["time_formatted"] = str(

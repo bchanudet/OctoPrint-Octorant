@@ -96,7 +96,20 @@ EVENTS = {
         "enabled": True,
         "media": "snapshot",
         "message": "👎 Printing has failed! :(",
-        "variables": ["time", "reason", "error"],
+        "variables": [
+            "name", 
+            "path", 
+            "origin", 
+            "size", 
+            "position", 
+            "fileposition", 
+            "progress", 
+            "owner", 
+            "user", 
+            "time", 
+            "time_formatted", 
+            "reason"
+        ],
     },
     # SD TRANSFERS EVENTS
     "transfer_started": {
