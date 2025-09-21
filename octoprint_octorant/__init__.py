@@ -385,7 +385,7 @@ class OctorantPlugin(
             if throttle_enabled == True:
                 throttle_step = self._settings.get_int(["progress", "throttle_step"], merged=True)
                 if time.time() < self.lastProgressNotifiedAt + throttle_step:
-                    self._logger.notice("Throttled by settings")
+                    self._logger.info("Throttled by settings")
                     return
 
             self.lastProgressNotifiedAt = time.time()
@@ -405,24 +405,14 @@ class OctorantPlugin(
 
                 if printer_data["progress"] is not None:
                     if printer_data["progress"]["printTimeLeft"] is not None:
-                        payload["remaining"] = int(
-                            printer_data["progress"]["printTimeLeft"]
-                        )
-                        payload["remaining_formatted"] = str(
-                            datetime.timedelta(seconds=payload["remaining"])
-                        )
+                        payload["remaining"] = int(printer_data["progress"]["printTimeLeft"])
+                        payload["remaining_formatted"] = str(datetime.timedelta(seconds=payload["remaining"]))
                     if printer_data["progress"]["printTime"] is not None:
                         payload["spent"] = int(printer_data["progress"]["printTime"])
-                        payload["spent_formatted"] = str(
-                            datetime.timedelta(seconds=payload["spent"])
-                        )
+                        payload["spent_formatted"] = str(datetime.timedelta(seconds=payload["spent"]))
                     if printer_data["progress"]["completion"] is not None:
-                        payload["progress"] = int(
-                            printer_data["progress"]["completion"]
-                        )
-                        payload["progress_formatted"] = int(
-                            printer_data["progress"]["completion"]
-                        ) + "%"
+                        payload["progress"] = int(printer_data["progress"]["completion"])
+                        payload["progress_formatted"] = "%2.2f%%" % printer_data["progress"]["completion"]
 
             self.notify_event(
                 "printing_progress" if not self.uploading else "transfer_progress",
@@ -463,7 +453,7 @@ class OctorantPlugin(
             # Detected some tags that are not found in the payload
             message.content = event_configuration["message"]
             message.content += "(:sos: *Error: unknown variable `{}`*)".format(error.args[0])
-            
+
             self._logger.warning("Unknown variable `{}` in event {}".format(error.args[0], eventID))
 
         # Embed

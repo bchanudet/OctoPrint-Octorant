@@ -243,7 +243,7 @@ EVENTS = {
             ("Size", "size_formatted", True),
             ("Reason", "reason", True),
             ("Time spent", "spent_formatted", True),
-            ("Remaining", "remaining_formatted", True)
+            ("Remaining", "remaining_formatted", True),
             ("Progress", "progress_formatted", True),
         ],
         "embed_color": color_default
