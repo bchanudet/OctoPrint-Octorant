@@ -12,9 +12,6 @@ import json
 from threading import Thread
 from octoprint.events import eventManager
 
-from .media import Media
-
-
 class Message:
     def __init__(self, event_id = "") -> None:
         self.event_id = event_id
