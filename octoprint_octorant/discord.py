@@ -35,7 +35,7 @@ class DiscordSender(Thread):
         self.stop_until = 0
 
         self.start()
-        self._logger.debug("Discord thread has started")
+        self._logger.debug("DiscordSender thread has started")
 
     def set_config(self, url, username="", avatar="", thread_id=0):
         self.url = url
@@ -76,12 +76,12 @@ class DiscordSender(Thread):
             # If not setup, just close already
             if self.url == "":
                 self.queue.task_done()
-                self._logger.debug("DiscordMessage: No Webhook URL provided")
+                self._logger.debug("DiscordSender: No Webhook URL provided")
                 continue
 
             if message.content == "" and message.embed is None:
                 self.queue.task_done()
-                self._logger.debug("DiscordMessage: Message is empty")
+                self._logger.debug("DiscordSender: Message is empty")
                 continue
 
             eventManager().fire("plugin_octorant_before_notify", {"event": message.event_id })
@@ -150,15 +150,15 @@ class DiscordSender(Thread):
 
             except requests.ConnectTimeout:
                 self._logger.error(
-                    "ConnectTimeout triggered when sending message to Discord"
+                    "DiscordSender: ConnectTimeout triggered when sending message to Discord"
                 )
             except requests.ConnectionError:
                 self._logger.error(
-                    "ConnectionError triggered when sending message to Discord"
+                    "DiscordSender: ConnectionError triggered when sending message to Discord"
                 )
 
             except Exception as e:
-                self._logger.error("Exception in Sender: {} {}".format(e, traceback.format_exc()))
+                self._logger.error("DiscordSender: {} {}".format(e, traceback.format_exc()))
 
             finally:
                 eventManager().fire("plugin_octorant_after_notify", {"event": message.event_id})
