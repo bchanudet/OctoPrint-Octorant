@@ -5,8 +5,9 @@
 import logging
 import time
 import requests
-import sys
+import traceback
 import queue
+import json
 
 from threading import Thread
 from octoprint.events import Events, eventManager
@@ -18,7 +19,7 @@ class Message:
     def __init__(self, event_id = "") -> None:
         self.event_id = event_id
         self.content = ""
-        self.media: Media = None
+        self.media = None
         self.embed = None
 
 
@@ -62,6 +63,7 @@ class DiscordSender(Thread):
     def run(self):
         while True:
             message: Message = self.queue.get()
+            files = list()
 
             if self.stop_until > time.time():
                 self.queue.task_done()
@@ -70,24 +72,22 @@ class DiscordSender(Thread):
                 )
                 continue
 
-            file = None
-
             # If not setup, just close already
             if self.url == "":
                 self.queue.task_done()
                 self._logger.debug("DiscordMessage: No Webhook URL provided")
                 continue
 
-            if message.content == "":
+            if message.content == "" and message.embed is None:
                 self.queue.task_done()
-                self._logger.debug("DiscordMessage: Content is empty")
+                self._logger.debug("DiscordMessage: Message is empty")
                 continue
 
             eventManager().fire("plugin_octorant_before_notify", {"event": message.event_id })
 
             # Grab the media
-            if message.media is not None:
-                file = message.media.get()
+            if message.media is not None and message.media.type is not None:
+                files.append(message.media.get())
 
             # Setup the payload
             payload = {
@@ -108,11 +108,16 @@ class DiscordSender(Thread):
                         if self.thread_id > 0
                         else ""
                     ),
-                    files=file,
-                    data=payload,
+                    data = {
+                        "payload_json": json.dumps(payload)
+                    },
+                    files=files,
                     timeout=60,
                 )
 
+                self.stop_until = 0
+
+                self._logger.debug("Discord Response status_code: {}".format(response.status_code))
                 if response.status_code == 429:
                     data = response.json()
                     if int(data["retry_after"]) > 0:
@@ -121,13 +126,17 @@ class DiscordSender(Thread):
                         )
 
                     self._logger.debug(data)
-                    self._logger.warn(
+                    self._logger.warning(
                         "Rate limited by Discord API. Won't send message until {}".format(
                             self.stop_until
                         )
                     )
-                else:
-                    self.stop_until = 0
+                elif response.status_code >= 300:
+                    self._logger.warning(
+                        "Error from Discord webhook: {}".format(
+                            response.content
+                        )
+                    )
 
             except requests.ConnectTimeout:
                 self._logger.error(
@@ -138,10 +147,8 @@ class DiscordSender(Thread):
                     "ConnectionError triggered when sending message to Discord"
                 )
 
-            except:
-                # In case of a general exception, return so that the thread gets killed and restart correctly next time.
-                self._logger.error(sys.exc_info())
-                return
+            except Exception as e:
+                self._logger.error("Exception in Sender: {} {}".format(e, traceback.format_exc()))
 
             finally:
                 eventManager().fire("plugin_octorant_after_notify", {"event": message.event_id})

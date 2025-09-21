@@ -301,15 +301,15 @@ class OctorantPlugin(
     def progress_check(self):
         notifyReason = ""
 
+        throttle_enabled = self._settings.get_boolean(["progress", "throttle_enabled"], merged=True)
+        time_enabled = self._settings.get_boolean(["progress", "time_enabled"], merged=True)
+        progress_enabled = self._settings.get_boolean(["progress", "percentage_enabled"], merged=True)
+        height_enabled = self._settings.get_boolean(["progress", "height_enabled"], merged=True)
+
         # First we check the throttle and return if we are too early
-        if (
-            self._settings.get_boolean(["progress", "throttle_enabled"], merged=True)
-            == True
-        ):
-            if time.time() < (
-                self.lastProgressNotifiedAt
-                + self._settings.get_int(["progress", "throttle_step"], merged=True)
-            ):
+        if throttle_enabled == True:
+            throttle_step = self._settings.get_int(["progress", "throttle_step"], merged=True)
+            if time.time() < self.lastProgressNotifiedAt + throttle_step:
                 return
 
         # Get the printer data
@@ -320,102 +320,75 @@ class OctorantPlugin(
             return
 
         # Time check.
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(["progress", "time_enabled"], merged=True)
-            == True
-        ):
-            if time.time() > (
-                self.lastProgressTime
-                + self._settings.get_int(["progress", "time_step"], merged=True)
-            ):
+        if notifyReason == "" and time_enabled:
+            current_time = time.time()
+            time_step = self._settings.get_int(["progress", "time_step"], merged=True)
+
+            if current_time > self.lastProgressTime + time_step:
                 self._logger.debug(
                     "Progress Check: Timer threshold was hit (last: {}, current: {})".format(
-                        self.lastProgressTime, time.time()
+                        self.lastProgressTime, current_time
                     )
                 )
-                self.lastProgressTime = time.time()
+                self.lastProgressTime = current_time
                 notifyReason = "time"
             else:
                 self._logger.debug(
                     "Progress Check: Timer not triggerd (last: {}, current: {})".format(
-                        self.lastProgressTime, time.time()
+                        self.lastProgressTime, current_time
                     )
                 )
 
         # Percentage check
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(
-                ["progress", "percentage_enabled"], merged=True
-            )
-            == True
-        ):
-            if int(printer_data["progress"]["completion"]) > 0 and int(printer_data["progress"]["completion"]) > self.lastProgressPercent :
-                if int(printer_data["progress"]["completion"]) >= (
-                    self.lastProgressPercent
-                    + self._settings.get_int(
-                        ["progress", "percentage_step"], merged=True
-                    )
-                ):
-                    self._logger.debug(
-                        "Progress Check: Percentage threshold was hit (last: {}, current: {})".format(
-                            self.lastProgressPercent,
-                            int(printer_data["progress"]["completion"]),
+        if notifyReason == "" and progress_enabled:
+            if printer_data["progress"] is not None:
+
+                progress_completion = int(printer_data["progress"]["completion"])
+                progress_step = self._settings.get_int(["progress", "percentage_step"], merged=True)
+
+                if progress_completion > 0 and progress_completion > self.lastProgressPercent :
+                    if progress_completion >= self.lastProgressPercent + progress_step:
+                        self._logger.debug(
+                            "Progress Check: Percentage threshold was hit (last: {}, current: {})".format(
+                                self.lastProgressPercent,
+                                progress_completion,
+                            )
                         )
-                    )
-                    self.lastProgressPercent = int(
-                        printer_data["progress"]["completion"]
-                    )
-                    notifyReason = "percentage"
-                else:
-                    self._logger.debug(
-                        "Progress Check: Percentage not triggerd (last: {}, current: {})".format(
-                            self.lastProgressPercent,
-                            int(printer_data["progress"]["completion"]),
+                        self.lastProgressPercent = progress_completion
+                        notifyReason = "percentage"
+                    else:
+                        self._logger.debug(
+                            "Progress Check: Percentage not triggerd (last: {}, current: {})".format(
+                                self.lastProgressPercent,
+                                progress_completion,
+                            )
                         )
-                    )
 
         # Height check
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(["progress", "height_enabled"], merged=True)
-            == True
-        ):
+        if notifyReason == "" and height_enabled:
             if printer_data["currentZ"] is not None:
+
+                currentZ = float(printer_data["currentZ"])
+                height_step = self._settings.get_float(["progress", "height_step"], merged=True)
+
                 # let's check for abnormal Z moves and discard them.
                 # basic test if the current Z is larger than 5 times the step configured, that means a strange move that we'll discard.
-                if float(printer_data["currentZ"]) > 0 and float(
-                    printer_data["currentZ"]
-                ) > (
-                    self.lastProgressHeight
-                    + (
-                        self._settings.get_float(
-                            ["progress", "height_step"], merged=True
-                        )
-                        * 5
-                    )
-                ):
+                if currentZ > 0 and currentZ > self.lastProgressHeight + height_step * 5:
                     return
 
-                if float(printer_data["currentZ"]) > 0 and float(
-                    printer_data["currentZ"]
-                ) > (
-                    self.lastProgressHeight
-                    + self._settings.get_float(["progress", "height_step"], merged=True)
-                ):
+                if currentZ > 0 and currentZ > self.lastProgressHeight + height_step:
                     self._logger.debug(
                         "Progress Check: Height threshold was hit (last: {}, current: {})".format(
-                            self.lastProgressHeight, float(printer_data["currentZ"])
+                            self.lastProgressHeight, currentZ
                         )
                     )
-                    self.lastProgressHeight = float(printer_data["currentZ"])
+                    self.lastProgressHeight = currentZ
                     notifyReason = "height"
 
                 else:
                     self._logger.debug(
                         "Progress Check: Height not triggerd (last: {}, current: {})".format(
-                            self.lastProgressHeight, float(printer_data["currentZ"])
+                            self.lastProgressHeight, currentZ
                         )
                     )
 
@@ -499,29 +472,22 @@ class OctorantPlugin(
             # Let's get some media
             message.media = Media(self._settings, self._logger)
 
-            if event_configuration["media"] != "":
-                if event_configuration["media"] == "thumbnail":
-                    message.media.set_thumbnail(
-                        self._file_manager.path_on_disk(data["origin"], data["path"])
+            if event_configuration["media"] == "thumbnail":
+                message.media.set_thumbnail(
+                    self._file_manager.path_on_disk(data["origin"], data["path"])
+                )
+            elif event_configuration["media"] == "snapshot":
+                if is_octoprint_compatible(">=1.9"):
+                    message.media.set_snapshot()
+                else:
+                    message.media.set_snapshot(
+                        url=self._settings.global_get(["webcam", "snapshot"]),
+                        mustFlipH=self._settings.global_get_boolean(["webcam", "flipH"]),
+                        mustFlipV=self._settings.global_get_boolean(["webcam", "flipV"]),
+                        mustRotate=self._settings.global_get_boolean(["webcam", "rotate90"]),
                     )
-                elif event_configuration["media"] == "snapshot":
-                    if is_octoprint_compatible(">=1.9"):
-                        message.media.set_snapshot()
-                    else:
-                        message.media.set_snapshot(
-                            url=self._settings.global_get(["webcam", "snapshot"]),
-                            mustFlipH=self._settings.global_get_boolean(
-                                ["webcam", "flipH"]
-                            ),
-                            mustFlipV=self._settings.global_get_boolean(
-                                ["webcam", "flipV"]
-                            ),
-                            mustRotate=self._settings.global_get_boolean(
-                                ["webcam", "rotate90"]
-                            ),
-                        )
-                elif event_configuration["media"] == "timelapse":
-                    message.media.set_timelapse(filePath=data["movie"])
+            elif event_configuration["media"] == "timelapse":
+                message.media.set_timelapse(filePath=data["movie"])
 
         return self.sender.send_message(message)
 
