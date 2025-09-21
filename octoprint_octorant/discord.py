@@ -94,6 +94,15 @@ class DiscordSender(Thread):
                 "content": message.content,
             }
 
+            if message.embed is not None:
+                if message.media is not None and message.media.type != "timelapse" and len(files) > 0:
+                    message.embed["image"]["url"] = "attachment://" + message.media.get_filename()
+
+                payload = {
+                    "embeds": list()
+                }
+                payload["embeds"].append(message.embed)
+
             if self.username != "":
                 payload["username"] = self.username
 
