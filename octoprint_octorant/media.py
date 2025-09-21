@@ -131,7 +131,7 @@ class Media:
                         thumbnailB64 += strippedLine
 
         if len(thumbnailB64) > 0:
-            return {"file": (self.get_filename(), base64.b64decode(thumbnailB64))}
+            return ("file", (self.get_filename(), base64.b64decode(thumbnailB64)))
 
         self.logger.debug("No thumbnail found")
         return None
@@ -206,7 +206,7 @@ class Media:
                     self.logger.error("Snapshot result is empty")
                     return None
 
-        snapshot = {"file": (self.get_filename(), snapshotImage)}
+        snapshot = ("file", (self.get_filename(), snapshotImage))
 
         return snapshot
 
@@ -227,6 +227,6 @@ class Media:
             return None
 
         with open(self.filePath, "rb") as f:
-            return {"file": (self.get_filename(), f.read())}
+            return ("file", (self.get_filename(), f.read()))
 
         return None
