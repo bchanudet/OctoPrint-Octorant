@@ -14,7 +14,7 @@ from octoprint.events import Events, eventManager
 from octoprint.util import RepeatedTimer
 from octoprint.util.version import is_octoprint_compatible
 
-from .discord import DiscordMessage
+from .discord import DiscordSender, Message
 from .events import EVENTS
 from .media import Media
 
@@ -38,12 +38,12 @@ class OctorantPlugin(
         self.lastProgressHeight = 0
 
         # Discord webhook handler
-        self.discord: DiscordMessage = None
+        self.sender: DiscordSender = None
 
     def initialize(self):
         # Instantiate Discord handler
-        self.discord = DiscordMessage(self._logger)
-        self.discord.set_config(
+        self.sender = DiscordSender(self._logger)
+        self.sender.set_config(
             self._settings.get(["url"], merged=True),
             self._settings.get(["username"], merged=True),
             self._settings.get(["avatar"], merged=True),
@@ -109,7 +109,7 @@ class OctorantPlugin(
         if old_bot_settings != new_bot_settings:
             self._logger.info("Settings have changed. Send a test message...")
 
-            self.discord.set_config(
+            self.sender.set_config(
                 self._settings.get(["url"], merged=True),
                 self._settings.get(["username"], merged=True),
                 self._settings.get(["avatar"], merged=True),
@@ -478,33 +478,37 @@ class OctorantPlugin(
         if "movie_basename" in data:
             data["movie_basename_uri"] = urllib.parse.quote(data["movie_basename"])
 
+        # Instantiate message
+        message = Message()
+
         self._logger.debug(
             "Available variables for event " + eventID + ": " + ", ".join(list(data))
         )
         try:
-            message = event_configuration["message"].format(**data)
+            message.content = event_configuration["message"].format(**data)
         except KeyError as error:
             # Detected some tags that are not found in the payload
-            message = (
+            message.content = (
                 event_configuration["message"]
                 + """\r\n:sos: **OctoRant Error**: unknown variable `{"""
                 + error.args[0]
                 + """}`."""
             )
+            self._logger.warning("Unknown variable `{}` in event {}".format(error.args[0], eventID))
         finally:
             # Let's get some media
-            media = Media(self._settings, self._logger)
+            message.media = Media(self._settings, self._logger)
 
             if event_configuration["media"] != "":
                 if event_configuration["media"] == "thumbnail":
-                    media.set_thumbnail(
+                    message.media.set_thumbnail(
                         self._file_manager.path_on_disk(data["origin"], data["path"])
                     )
                 elif event_configuration["media"] == "snapshot":
                     if is_octoprint_compatible(">=1.9"):
-                        media.set_snapshot()
+                        message.media.set_snapshot()
                     else:
-                        media.set_snapshot(
+                        message.media.set_snapshot(
                             url=self._settings.global_get(["webcam", "snapshot"]),
                             mustFlipH=self._settings.global_get_boolean(
                                 ["webcam", "flipH"]
@@ -517,9 +521,9 @@ class OctorantPlugin(
                             ),
                         )
                 elif event_configuration["media"] == "timelapse":
-                    media.set_timelapse(filePath=data["movie"])
+                    message.media.set_timelapse(filePath=data["movie"])
 
-            return self.send_message(eventID, message, media)
+            return self.send_message(eventID, message)
 
     def exec_script(self, eventName, which=""):
         # I want to be sure that the scripts are allowed by the special configuration flag
@@ -554,7 +558,7 @@ class OctorantPlugin(
             self._logger.debug("{}:{} > Output: '{}'".format(eventName, which, out))
             return out
 
-    def send_message(self, eventID, message, media: Media = None):
+    def send_message(self, eventID, message: Message):
         # return false if no URL is provided
         if "http" not in self._settings.get(["url"], merged=True):
             return False
@@ -564,7 +568,7 @@ class OctorantPlugin(
         self.exec_script(eventID, "before")
 
         # Send to Discord WebHook
-        self.discord.send_message(message, media)
+        self.sender.send_message(message)
 
         # exec "after" script if any
         self.exec_script(eventID, "after")

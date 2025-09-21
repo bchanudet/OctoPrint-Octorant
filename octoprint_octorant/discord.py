@@ -13,12 +13,13 @@ from .media import Media
 
 
 class Message:
-    def __init__(self, content: str, media: Media = None) -> None:
-        self.content = content
-        self.media: Media = media
+    def __init__(self) -> None:
+        self.content = ""
+        self.media: Media = None
+        self.embed = None
 
 
-class DiscordMessage(Thread):
+class DiscordSender(Thread):
     def __init__(self, logger: logging.Logger):
         Thread.__init__(self, daemon=True, name="octorant-discord-sender")
 
@@ -41,15 +42,12 @@ class DiscordMessage(Thread):
         self.avatar = avatar
         self.thread_id = thread_id
 
-    def send_message(self, content: str, media: Media = None):
+    def send_message(self, message: Message):
         if self.stop_until > time.time():
             self._logger.debug(
                 "Rate limited by Discord until: {}".format(self.stop_until)
             )
             return
-
-        # Setup variables
-        message = Message(content, media)
 
         self._logger.debug(
             "Adding message to queue: {} (rate-limit: {})".format(
