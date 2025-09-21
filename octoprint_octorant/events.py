@@ -48,7 +48,7 @@ EVENTS = {
         "enabled": True,
         "media": "snapshot",
         "message": "🖨️ I've started printing **{name}**",
-        "variables": ["name", "path", "origin", "size", "owner", "user"],
+        "variables": ["name", "path", "origin", "size", "owner", "user", "size_formatted"],
     },
     "printing_paused": {
         "enabled": True,

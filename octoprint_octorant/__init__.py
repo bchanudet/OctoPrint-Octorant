@@ -10,7 +10,8 @@ import datetime
 import time
 import os
 
-from octoprint.util import RepeatedTimer
+
+from octoprint.util import RepeatedTimer, get_formatted_size
 from octoprint.util.version import is_octoprint_compatible
 
 from .discord import DiscordSender, Message
@@ -230,15 +231,9 @@ class OctorantPlugin(
             return self.notify_event("printing_cancelled", payload)
         if event == Events.PRINT_FAILED:
             self.stop_progress_check()
-            payload["time_formatted"] = str(
-                datetime.timedelta(seconds=int(payload["time"]))
-            )
             return self.notify_event("printing_failed", payload)
         if event == Events.PRINT_DONE:
             self.stop_progress_check()
-            payload["time_formatted"] = str(
-                datetime.timedelta(seconds=int(payload["time"]))
-            )
             return self.notify_event("printing_done", payload)
 
         # SD Card transfer
@@ -247,9 +242,6 @@ class OctorantPlugin(
             self.start_progress_check()
             return self.notify_event("transfer_started", payload)
         if event == Events.TRANSFER_DONE:
-            payload["time_formatted"] = str(
-                datetime.timedelta(seconds=int(payload["time"]))
-            )
             self.uploading = False
             self.stop_progress_check()
             self.notify_event("transfer_done", payload)
@@ -445,6 +437,8 @@ class OctorantPlugin(
             return False
 
         # Alter a bit the payload to offer more variables
+        if "size" in data:
+            data["size_formatted"] = get_formatted_size(int(data["size"]))
         if "time" in data:
             data["time_formatted"] = str(datetime.timedelta(seconds=int(data["time"])))
         if "movie_basename" in data:
