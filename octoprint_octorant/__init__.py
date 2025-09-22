@@ -254,6 +254,10 @@ class OctorantPlugin(
         if event == Events.MOVIE_FAILED:
             return self.notify_event("timelapse_failed", payload)
         
+        # Achievements
+        if event == "plugin_achievements_achievement_unlocked":
+            return self.notify_event("achievement_unlocked", payload)
+        
         # Avoid flooding debug logs with "ZChange was not handled"
         if event == "ZChange":
             return True

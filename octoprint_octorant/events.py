@@ -294,6 +294,21 @@ EVENTS = {
         ],
         "embed_color": color_green
     },
+    # Achievements
+    "achievement_unlocked": {
+        "enabled": False,
+        "media": "",
+        "message": "✨ Achievement unlocked: {name}",
+        "variables": [
+            "key", "name", "description", "hidden"
+        ],
+        "embed_used": False,
+        "embed_fields": [
+            ("name", "name", False),
+            ("description", "description", False),
+        ],
+        "embed_color": color_default
+    },
     # Not a real message, but we will treat it as one
     "test": {
         "enabled": True,
