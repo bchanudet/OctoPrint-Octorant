@@ -19,6 +19,7 @@ License : [MIT](./LICENSE)
 - Fixed most errors happening when sending messages
 - Messages can now be sent as Embeds with useful information displayed by default
 - Scripts support has now been completely removed
+- You can now brag by sending messages when you unlock achievements!
 
 ### History
 
