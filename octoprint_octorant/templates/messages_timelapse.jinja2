@@ -1,17 +1,16 @@
 <div class="octorant_category">
-    <!-- timelapse_done -->    
+    <!-- timelapse_done -->
     <div class="octorant_message" data-bind="css: {inactive: (events['timelapse_done'].enabled() == false)}">
         <h5>
-            <input type="checkbox" class="" data-bind="checked: events['timelapse_done'].enabled"/>
+            <input type="checkbox" class="" data-bind="checked: events['timelapse_done'].enabled" />
             <span>{{ _("Rendering: Done") }}</span>
         </h5>
         <div data-bind="visible: events['timelapse_done'].enabled">
             <div class="control-group">
-                <label class="control-label" for="octorant_message_timelapse_done" >{{ _("Message") }}</label>
+                <label class="control-label" for="octorant_message_timelapse_done">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_timelapse_done" 
-                        data-bind="textInput: events['timelapse_done'].message"
-                    />
+                    <input type="text" class="input-block-level" id="octorant_message_timelapse_done"
+                        data-bind="textInput: events['timelapse_done'].message" />
                     <span class="help-inline" data-bind="if: events['timelapse_done'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['timelapse_done'].variables">
@@ -21,7 +20,7 @@
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label" for="octorant_media_timelapse_done" >{{ _("Include media") }}</label>
+                <label class="control-label" for="octorant_media_timelapse_done">{{ _("Include media") }}</label>
                 <div class="controls">
                     <select id="octorant_media_timelapse_done" data-bind="value: events['timelapse_done'].media">
                         <option value="none">{{ _("None") }}</option>
@@ -30,22 +29,30 @@
                     </select>
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_timelapse_done">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_timelapse_done" class=""
+                        data-bind="checked: events['timelapse_done'].embed_used" />
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- timelapse_failed -->    
+    <!-- timelapse_failed -->
     <div class="octorant_message" data-bind="css: {inactive: (events['timelapse_failed'].enabled() == false)}">
         <h5>
-            <input type="checkbox" class="" data-bind="checked: events['timelapse_failed'].enabled"/>
+            <input type="checkbox" class="" data-bind="checked: events['timelapse_failed'].enabled" />
             <span>{{ _("Rendering: Failed") }}</span>
         </h5>
         <div data-bind="visible: events['timelapse_failed'].enabled">
             <div class="control-group">
-                <label class="control-label" for="octorant_message_timelapse_failed" >{{ _("Message") }}</label>
+                <label class="control-label" for="octorant_message_timelapse_failed">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_timelapse_failed" 
-                        data-bind="textInput: events['timelapse_failed'].message"
-                    />
+                    <input type="text" class="input-block-level" id="octorant_message_timelapse_failed"
+                        data-bind="textInput: events['timelapse_failed'].message" />
                     <span class="help-inline" data-bind="if: events['timelapse_failed'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['timelapse_failed'].variables">
@@ -55,12 +62,21 @@
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label" for="octorant_media_timelapse_failed" >{{ _("Include media") }}</label>
+                <label class="control-label" for="octorant_media_timelapse_failed">{{ _("Include media") }}</label>
                 <div class="controls">
                     <select id="octorant_media_timelapse_failed" data-bind="value: events['timelapse_failed'].media">
                         <option value="none">{{ _("None") }}</option>
                         <option value="snapshot">{{ _("Webcam snapshot") }}</option>
                     </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="octorant_embed_timelapse_failed">
+                    Display as Embed
+                </label>
+                <div class="controls">
+                    <input type="checkbox" id="octorant_embed_timelapse_failed" class=""
+                        data-bind="checked: events['timelapse_failed'].embed_used" />
                 </div>
             </div>
         </div>

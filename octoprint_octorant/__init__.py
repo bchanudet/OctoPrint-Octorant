@@ -2,18 +2,15 @@
 from __future__ import absolute_import
 
 import octoprint.plugin
-import octoprint.settings
-import octoprint.util
-import subprocess
+import urllib.parse
 import datetime
 import time
-import os
 
-from octoprint.events import Events, eventManager
-from octoprint.util import RepeatedTimer
+from octoprint.util import RepeatedTimer, get_formatted_size
 from octoprint.util.version import is_octoprint_compatible
+from octoprint.events import Events
 
-from .discord import DiscordMessage
+from .discord import DiscordSender, Message
 from .events import EVENTS
 from .media import Media
 
@@ -37,12 +34,12 @@ class OctorantPlugin(
         self.lastProgressHeight = 0
 
         # Discord webhook handler
-        self.discord: DiscordMessage = None
+        self.sender: DiscordSender = None
 
     def initialize(self):
         # Instantiate Discord handler
-        self.discord = DiscordMessage(self._logger)
-        self.discord.set_config(
+        self.sender = DiscordSender(self._logger)
+        self.sender.set_config(
             self._settings.get(["url"], merged=True),
             self._settings.get(["username"], merged=True),
             self._settings.get(["avatar"], merged=True),
@@ -108,7 +105,7 @@ class OctorantPlugin(
         if old_bot_settings != new_bot_settings:
             self._logger.info("Settings have changed. Send a test message...")
 
-            self.discord.set_config(
+            self.sender.set_config(
                 self._settings.get(["url"], merged=True),
                 self._settings.get(["username"], merged=True),
                 self._settings.get(["avatar"], merged=True),
@@ -157,6 +154,8 @@ class OctorantPlugin(
     ##~~ TemplatePlugin mixin
     def get_template_configs(self):
         return [dict(type="settings", custom_bindings=True)]
+    def is_template_autoescaped(self):
+        return True
 
     ##~~ Softwareupdate hook
 
@@ -195,16 +194,21 @@ class OctorantPlugin(
 
         # Printer
         if event == Events.PRINTER_STATE_CHANGED:
-            if payload["state_id"] == "OPERATIONAL":
+            if payload["state_id"] == "CONNECTING":
+                return self.notify_event("printer_state_connecting")
+            elif payload["state_id"] == "OPERATIONAL":
                 return self.notify_event("printer_state_operational")
             elif payload["state_id"] == "ERROR":
                 return self.notify_event("printer_state_error")
             elif payload["state_id"] == "UNKNOWN":
                 return self.notify_event("printer_state_unknown")
+            elif payload["state_id"] == "OFFLINE":
+                return self.notify_event("printer_state_offline")
             else:
                 self._logger.debug(
                     "Event {}/{} was not handled".format(event, payload["state_id"])
                 )
+                return False
 
         # Prints
         if event == Events.PRINT_STARTED:
@@ -221,11 +225,11 @@ class OctorantPlugin(
         if event == Events.PRINT_CANCELLED:
             self.stop_progress_check()
             return self.notify_event("printing_cancelled", payload)
+        if event == Events.PRINT_FAILED:
+            self.stop_progress_check()
+            return self.notify_event("printing_failed", payload)
         if event == Events.PRINT_DONE:
             self.stop_progress_check()
-            payload["time_formatted"] = str(
-                datetime.timedelta(seconds=int(payload["time"]))
-            )
             return self.notify_event("printing_done", payload)
 
         # SD Card transfer
@@ -234,9 +238,6 @@ class OctorantPlugin(
             self.start_progress_check()
             return self.notify_event("transfer_started", payload)
         if event == Events.TRANSFER_DONE:
-            payload["time_formatted"] = str(
-                datetime.timedelta(seconds=int(payload["time"]))
-            )
             self.uploading = False
             self.stop_progress_check()
             self.notify_event("transfer_done", payload)
@@ -252,9 +253,21 @@ class OctorantPlugin(
             return self.notify_event("timelapse_done", payload)
         if event == Events.MOVIE_FAILED:
             return self.notify_event("timelapse_failed", payload)
+        
+        # Achievements
+        if event == "plugin_achievements_achievement_unlocked":
+            return self.notify_event("achievement_unlocked", payload)
+        
+        # Avoid flooding debug logs with "ZChange was not handled"
+        if event == "ZChange":
+            return True
 
         # Helps discovering new events that ae not documented
-        self._logger.debug("Event {} was not handled".format(event))
+        logMsg = "Event {} was not handled.".format(event)
+        if payload is not None:
+            logMsg += " Available payload: {}".format(', '.join(list(payload)))
+
+        self._logger.debug(logMsg)
         return True
 
     def start_progress_check(self):
@@ -280,16 +293,10 @@ class OctorantPlugin(
     def progress_check(self):
         notifyReason = ""
 
-        # First we check the throttle and return if we are too early
-        if (
-            self._settings.get_boolean(["progress", "throttle_enabled"], merged=True)
-            == True
-        ):
-            if time.time() < (
-                self.lastProgressNotifiedAt
-                + self._settings.get_int(["progress", "throttle_step"], merged=True)
-            ):
-                return
+        throttle_enabled = self._settings.get_boolean(["progress", "throttle_enabled"], merged=True)
+        time_enabled = self._settings.get_boolean(["progress", "time_enabled"], merged=True)
+        progress_enabled = self._settings.get_boolean(["progress", "percentage_enabled"], merged=True)
+        height_enabled = self._settings.get_boolean(["progress", "height_enabled"], merged=True)
 
         # Get the printer data
         printer_data = self._printer.get_current_data()
@@ -299,107 +306,87 @@ class OctorantPlugin(
             return
 
         # Time check.
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(["progress", "time_enabled"], merged=True)
-            == True
-        ):
-            if time.time() > (
-                self.lastProgressTime
-                + self._settings.get_int(["progress", "time_step"], merged=True)
-            ):
-                self._logger.debug(
+        if notifyReason == "" and time_enabled:
+            current_time = time.time()
+            time_step = self._settings.get_int(["progress", "time_step"], merged=True)
+
+            if current_time > self.lastProgressTime + time_step:
+                self._logger.info(
                     "Progress Check: Timer threshold was hit (last: {}, current: {})".format(
-                        self.lastProgressTime, time.time()
+                        self.lastProgressTime, current_time
                     )
                 )
-                self.lastProgressTime = time.time()
+                self.lastProgressTime = current_time
                 notifyReason = "time"
             else:
                 self._logger.debug(
-                    "Progress Check: Timer not triggerd (last: {}, current: {})".format(
-                        self.lastProgressTime, time.time()
+                    "Progress Check: Timer not triggered (last: {}, current: {})".format(
+                        self.lastProgressTime, current_time
                     )
                 )
 
         # Percentage check
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(
-                ["progress", "percentage_enabled"], merged=True
-            )
-            == True
-        ):
-            if int(printer_data["progress"]["completion"]) > 0:
-                if int(printer_data["progress"]["completion"]) > (
-                    self.lastProgressPercent
-                    + self._settings.get_int(
-                        ["progress", "percentage_step"], merged=True
-                    )
-                ):
-                    self._logger.debug(
-                        "Progress Check: Percentage threshold was hit (last: {}, current: {})".format(
-                            self.lastProgressPercent,
-                            int(printer_data["progress"]["completion"]),
+        if notifyReason == "" and progress_enabled:
+            if printer_data["progress"] is not None:
+
+                progress_completion = int(printer_data["progress"]["completion"])
+                progress_step = self._settings.get_int(["progress", "percentage_step"], merged=True)
+
+                if progress_completion > 0 and progress_completion > self.lastProgressPercent :
+                    if progress_completion >= self.lastProgressPercent + progress_step:
+                        self._logger.info(
+                            "Progress Check: Percentage threshold was hit (last: {}, current: {})".format(
+                                self.lastProgressPercent,
+                                progress_completion,
+                            )
                         )
-                    )
-                    self.lastProgressPercent = int(
-                        printer_data["progress"]["completion"]
-                    )
-                    notifyReason = "percentage"
-                else:
-                    self._logger.debug(
-                        "Progress Check: Percentage not triggerd (last: {}, current: {})".format(
-                            self.lastProgressPercent,
-                            int(printer_data["progress"]["completion"]),
+                        self.lastProgressPercent = progress_completion
+                        notifyReason = "percentage"
+                    else:
+                        self._logger.debug(
+                            "Progress Check: Percentage not triggered (last: {}, current: {})".format(
+                                self.lastProgressPercent,
+                                progress_completion,
+                            )
                         )
-                    )
 
         # Height check
-        if (
-            notifyReason == ""
-            and self._settings.get_boolean(["progress", "height_enabled"], merged=True)
-            == True
-        ):
+        if notifyReason == "" and height_enabled:
             if printer_data["currentZ"] is not None:
+
+                currentZ = float(printer_data["currentZ"])
+                height_step = self._settings.get_float(["progress", "height_step"], merged=True)
+
                 # let's check for abnormal Z moves and discard them.
                 # basic test if the current Z is larger than 5 times the step configured, that means a strange move that we'll discard.
-                if float(printer_data["currentZ"]) > 0 and float(
-                    printer_data["currentZ"]
-                ) > (
-                    self.lastProgressHeight
-                    + (
-                        self._settings.get_float(
-                            ["progress", "height_step"], merged=True
-                        )
-                        * 5
-                    )
-                ):
+                if currentZ > 0 and currentZ > self.lastProgressHeight + height_step * 5:
                     return
 
-                if float(printer_data["currentZ"]) > 0 and float(
-                    printer_data["currentZ"]
-                ) > (
-                    self.lastProgressHeight
-                    + self._settings.get_float(["progress", "height_step"], merged=True)
-                ):
-                    self._logger.debug(
+                if currentZ > 0 and currentZ > self.lastProgressHeight + height_step:
+                    self._logger.info(
                         "Progress Check: Height threshold was hit (last: {}, current: {})".format(
-                            self.lastProgressHeight, float(printer_data["currentZ"])
+                            self.lastProgressHeight, currentZ
                         )
                     )
-                    self.lastProgressHeight = float(printer_data["currentZ"])
+                    self.lastProgressHeight = currentZ
                     notifyReason = "height"
 
                 else:
                     self._logger.debug(
-                        "Progress Check: Height not triggerd (last: {}, current: {})".format(
-                            self.lastProgressHeight, float(printer_data["currentZ"])
+                        "Progress Check: Height not triggered (last: {}, current: {})".format(
+                            self.lastProgressHeight, currentZ
                         )
                     )
 
         # Alright let's notify if necessary
         if notifyReason != "":
+            # First we check the throttle and return if we are too early
+            if throttle_enabled == True:
+                throttle_step = self._settings.get_int(["progress", "throttle_step"], merged=True)
+                if time.time() < self.lastProgressNotifiedAt + throttle_step:
+                    self._logger.info("Throttled by settings")
+                    return
+
             self.lastProgressNotifiedAt = time.time()
             payload = {}
             payload["reason"] = notifyReason
@@ -409,6 +396,7 @@ class OctorantPlugin(
 
                 payload["reason"] = notifyReason
                 payload["progress"] = 0
+                payload["progress_formatted"] = "0%"
                 payload["remaining"] = 0
                 payload["remaining_formatted"] = "0s"
                 payload["spent"] = 0
@@ -416,21 +404,14 @@ class OctorantPlugin(
 
                 if printer_data["progress"] is not None:
                     if printer_data["progress"]["printTimeLeft"] is not None:
-                        payload["remaining"] = int(
-                            printer_data["progress"]["printTimeLeft"]
-                        )
-                        payload["remaining_formatted"] = str(
-                            datetime.timedelta(seconds=payload["remaining"])
-                        )
+                        payload["remaining"] = int(printer_data["progress"]["printTimeLeft"])
+                        payload["remaining_formatted"] = str(datetime.timedelta(seconds=payload["remaining"]))
                     if printer_data["progress"]["printTime"] is not None:
                         payload["spent"] = int(printer_data["progress"]["printTime"])
-                        payload["spent_formatted"] = str(
-                            datetime.timedelta(seconds=payload["spent"])
-                        )
+                        payload["spent_formatted"] = str(datetime.timedelta(seconds=payload["spent"]))
                     if printer_data["progress"]["completion"] is not None:
-                        payload["progress"] = int(
-                            printer_data["progress"]["completion"]
-                        )
+                        payload["progress"] = int(printer_data["progress"]["completion"])
+                        payload["progress_formatted"] = "%2.2f%%" % printer_data["progress"]["completion"]
 
             self.notify_event(
                 "printing_progress" if not self.uploading else "transfer_progress",
@@ -439,7 +420,7 @@ class OctorantPlugin(
 
     def notify_event(self, eventID, data={}):
         if eventID not in self.events:
-            self._logger.error("Tried to notifiy on inexistant eventID : ", eventID)
+            self._logger.error("Tried to notifiy on inexistant eventID: {}".format(eventID))
             return False
 
         event_configuration = self._settings.get(["events", eventID], merged=True)
@@ -451,102 +432,71 @@ class OctorantPlugin(
             return False
 
         # Alter a bit the payload to offer more variables
+        if "size" in data:
+            data["size_formatted"] = get_formatted_size(int(data["size"]))
         if "time" in data:
             data["time_formatted"] = str(datetime.timedelta(seconds=int(data["time"])))
+        if "movie_basename" in data:
+            data["movie_basename_uri"] = urllib.parse.quote(data["movie_basename"])
+
+        # Instantiate message
+        message = Message(eventID)
 
         self._logger.debug(
             "Available variables for event " + eventID + ": " + ", ".join(list(data))
         )
+
         try:
-            message = event_configuration["message"].format(**data)
+            message.content = event_configuration["message"].format(**data)
         except KeyError as error:
             # Detected some tags that are not found in the payload
-            message = (
-                event_configuration["message"]
-                + """\r\n:sos: **OctoRant Error**: unknown variable `{"""
-                + error.args[0]
-                + """}`."""
-            )
-        finally:
-            # Let's get some media
-            media = Media(self._settings, self._logger)
+            message.content = event_configuration["message"]
+            message.content += "(:sos: *Error: unknown variable `{}`*)".format(error.args[0])
 
-            if event_configuration["media"] != "":
-                if event_configuration["media"] == "thumbnail":
-                    media.set_thumbnail(
-                        self._file_manager.path_on_disk(data["origin"], data["path"])
+            self._logger.warning("Unknown variable `{}` in event {}".format(error.args[0], eventID))
+
+        # Embed
+        if event_configuration["embed_used"]:
+            message.embed = {
+                "title": message.content,
+                "color": event_configuration["embed_color"],
+                "image": { "url": "" },
+                "footer": {
+                    "text": "OctoRant " + self._plugin_version
+                },
+                "fields": []
+            }
+
+            for field in event_configuration["embed_fields"]:
+                new_field = {
+                    "name": field[0],
+                    "value": data[field[1]],
+                    "inline": field[2]
+                } 
+                message.embed["fields"].append(new_field)    
+
+        # Media
+        if event_configuration["media"] != "":
+            message.media = Media(self._settings, self._logger)
+
+            if event_configuration["media"] == "thumbnail":
+                message.media.set_thumbnail(
+                    self._file_manager.path_on_disk(data["origin"], data["path"])
+                )
+            elif event_configuration["media"] == "snapshot":
+                if is_octoprint_compatible(">=1.9"):
+                    message.media.set_snapshot()
+                else:
+                    message.media.set_snapshot(
+                        url=self._settings.global_get(["webcam", "snapshot"]),
+                        mustFlipH=self._settings.global_get_boolean(["webcam", "flipH"]),
+                        mustFlipV=self._settings.global_get_boolean(["webcam", "flipV"]),
+                        mustRotate=self._settings.global_get_boolean(["webcam", "rotate90"]),
                     )
-                elif event_configuration["media"] == "snapshot":
-                    if is_octoprint_compatible(">=1.9"):
-                        media.set_snapshot()
-                    else:
-                        media.set_snapshot(
-                            url=self._settings.global_get(["webcam", "snapshot"]),
-                            mustFlipH=self._settings.global_get_boolean(
-                                ["webcam", "flipH"]
-                            ),
-                            mustFlipV=self._settings.global_get_boolean(
-                                ["webcam", "flipV"]
-                            ),
-                            mustRotate=self._settings.global_get_boolean(
-                                ["webcam", "rotate90"]
-                            ),
-                        )
-                elif event_configuration["media"] == "timelapse":
-                    media.set_timelapse(filePath=data["movie"])
+            elif event_configuration["media"] == "timelapse":
+                message.media.set_timelapse(filePath=data["movie"])
 
-            return self.send_message(eventID, message, media)
-
-    def exec_script(self, eventName, which=""):
-        # I want to be sure that the scripts are allowed by the special configuration flag
-        scripts_allowed = self._settings.get(["allow_scripts"], merged=True)
-        if scripts_allowed is None or scripts_allowed == False:
-            return ""
-
-        # Finding which one should be used.
-        script_to_exec = None
-        if which == "before":
-            script_to_exec = self._settings.get(["script_before"], merged=True)
-
-        elif which == "after":
-            script_to_exec = self._settings.get(["script_after"], merged=True)  # type: ignore
-
-        # Finally exec the script
-        out = ""
-        self._logger.debug(
-            "{}:{} File to start: '{}'".format(eventName, which, script_to_exec)
-        )
-
-        try:
-            if (
-                script_to_exec is not None
-                and len(script_to_exec) > 0
-                and os.path.exists(script_to_exec)
-            ):
-                out = subprocess.check_output(script_to_exec)
-        except (OSError, subprocess.CalledProcessError) as err:
-            out = err
-        finally:
-            self._logger.debug("{}:{} > Output: '{}'".format(eventName, which, out))
-            return out
-
-    def send_message(self, eventID, message, media: Media = None):
-        # return false if no URL is provided
-        if "http" not in self._settings.get(["url"], merged=True):
-            return False
-
-        # exec "before" script if any
-        eventManager().fire("plugin_octorant_before_notify", {"event": eventID})
-        self.exec_script(eventID, "before")
-
-        # Send to Discord WebHook
-        self.discord.send_message(message, media)
-
-        # exec "after" script if any
-        self.exec_script(eventID, "after")
-        eventManager().fire("plugin_octorant_after_notify", {"event": eventID})
-
-        return True
+        return self.sender.send_message(message)
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py

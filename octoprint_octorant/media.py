@@ -69,6 +69,16 @@ class Media:
             return self.__grab_file()
 
         return None
+    
+    def get_filename(self):
+        if self.type == "thumbnail":
+            return "thumbnail.png"
+        elif self.type == "snapshot":
+            return "snapshot.jpg"
+        elif self.type == "timelapse":
+            return os.path.basename(self.filePath)
+        
+        return "filename"
 
     def __grab_gcode_thumbnail(self):
         thumbnailB64 = ""
@@ -121,7 +131,7 @@ class Media:
                         thumbnailB64 += strippedLine
 
         if len(thumbnailB64) > 0:
-            return {"file": ("thumbnail.png", base64.b64decode(thumbnailB64))}
+            return ("file", (self.get_filename(), base64.b64decode(thumbnailB64)))
 
         self.logger.debug("No thumbnail found")
         return None
@@ -139,10 +149,14 @@ class Media:
                 self.mustFlipH = webcam.config.flipH
                 self.mustFlipV = webcam.config.flipV
                 self.mustRotate = webcam.config.rotate90
-                snap = webcam.providerPlugin.take_webcam_snapshot(webcam.config.name)
-                image = bytes().join(snap)
-                self.logger.debug("Got snapshot of {} bytes".format(len(image)))
-                snapshotImage = BytesIO(image)
+                try:
+                    snap = webcam.providerPlugin.take_webcam_snapshot(webcam.config.name)
+                    image = bytes().join(snap)
+                    self.logger.debug("Got snapshot of {} bytes".format(len(image)))
+                    snapshotImage = BytesIO(image)
+                except Exception as e:
+                    snapshotImage = None
+                    self.logger.error("Error while fetching snapshot: {}".format(e))
 
         else:
             # request a snapshot from the URL
@@ -157,7 +171,6 @@ class Media:
                 self.logger.error("Error while fetching snapshot: ConnectTimeout")
 
         if snapshotImage is None:
-            self.logger.error("Snapshot is empty")
             return None
 
         # Only call Pillow if we need to transpose anything
@@ -193,7 +206,7 @@ class Media:
                     self.logger.error("Snapshot result is empty")
                     return None
 
-        snapshot = {"file": ("snapshot.jpg", snapshotImage)}
+        snapshot = ("file", (self.get_filename(), snapshotImage))
 
         return snapshot
 
@@ -214,6 +227,6 @@ class Media:
             return None
 
         with open(self.filePath, "rb") as f:
-            return {"file": (os.path.basename(self.filePath), f.read())}
+            return ("file", (self.get_filename(), f.read()))
 
         return None
