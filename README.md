@@ -1,5 +1,4 @@
-# OctoPrint-OctoRant 1.3.4
-
+# OctoPrint-OctoRant 1.4.0
 
 OctoRant is a plugin allowing Octoprint to send notifications to a Discord channel via a webhook URL. When wanted it can directly send a snapshot to Discord (without needing third-party services).
 
@@ -15,9 +14,11 @@ License : [MIT](./LICENSE)
 
 ## Changelog
 
-### 1.3.0+
+### 1.4.0
 
-A lot of improvements came with this new version. Follow the 🎇 icon in this file to see what's new.
+- Fixed most errors happening when sending messages
+- Messages can now be sent as Embeds with useful information displayed by default
+- Scripts support has now been completely removed
 
 ### History
 
@@ -35,7 +36,8 @@ or manually using this URL:
 
 ### Create the WebHook in Discord
 
-Please follow [Discord's official guide on Webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) to create a Webhook URL. Once you have it, head over to the plugin configuration to finish the setup.
+Please follow [Discord's official guide on Webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) to create a Webhook URL. 
+Once you have it, head over to the plugin configuration to finish the setup.
 
 ## Configuration
 
@@ -53,18 +55,19 @@ In order for you to be sure these settings work, every time you change one of th
 
 Here you can customize every message handled by OctoRant.
 
-- **Toggle the message** : by unchecking the checkbox in front of the message title, you can disable the message. It won't be sent to Discord.
-- **Message** : you can change the default content here. See the section [Message format](#message-format) for more information.
-- **Include media** : Embed a media with your message. Depending on the message you can choose which media to send:
+- **Toggle the message**: by unchecking the checkbox in front of the message title, you can disable the message. It won't be sent to Discord.
+- **Message**: you can change the default content here. See the section [Message format](#message-format) for more information.
+- **Include media**: Embed a media with your message. Depending on the message you can choose which media to send:
     - **Webcam snapshot**: If configured in Octoprint, a snapshot of your webcam watching your printer
-    - 🎇 **GCode thumbnail**: If your gcode files contains a preview thumbnail (according to PrusaSlicer format), OctoRant will send it.
-    - 🎇 **Timelapse movie**: Only on the "timelapse done" message, you can make OctoRant try to send the timelapse to Discord. Beware of the upload limit of your destination server though (8MB by default, but can be more if the server is boosted)
+    - **GCode thumbnail**: If your gcode files contains a preview thumbnail (according to PrusaSlicer format), OctoRant will send it.
+    - **Timelapse movie**: Only on the "timelapse done" message, you can make OctoRant try to send the timelapse to Discord. Beware of the upload limit of your destination server though (8MB by default, but can be more if the server is boosted)
+- **Display as embed**: Check this to use the new message format which includes useful variables by default.
 
-### 🎇 Smart progress notifications
+### Smart progress notifications
 
 Coming in v1.3.0, OctoRant now includes several progress criterias that can be combined altogther:
 - **Percentage of completion**: Be notified every `X`% during the print. _This is the new name of the option that existed in < 1.3.0 under the "Notify every XX%"_
-- **Timed interval**: For long prints were percentage change too slowly, you can enable a timed notification every `X` seconds, from as low as every second.
+- **Timed interval**: For long prints where percentage change too slowly, you can enable a timed notification every `X` seconds, from as low as every second.
 - **Height**: _(in Beta)_ Be notified for each `X`mm. A _quick'n'dirty_ algorithm was set to discard unrelated movements (like hovering above the plate to do Z-homing at the center), but false positives are still possible
 
 Considering those three criteria could generate a massive amount of messages, a fourth value is available:
@@ -72,15 +75,15 @@ Considering those three criteria could generate a massive amount of messages, a 
 
 ### Scripts Settings
 
-**🎇Depreciation notice**: Those settings are now deprecated and will be removed in a further release of the plugin. This is mostly due by the fact that Octoprint offers a much more powerful option with the [Event Manager](https://docs.octoprint.org/en/master/events/index.html), and also because I always thought I did a half-assed feature. In order to use the Event Manager with OctoRant, two new events are available : `plugin_octorant_before_notify` and `plugin_octorant_after_notify`. An `{event}` variable is available to know which event was triggered by OctoRant.
+> [!CAUTION]
+> **NOW REMOVED**
+>
+> Script support has been completed removed in v1.4.0. Octoprint offers a much more powerful option with the [Event Manager](https://docs.octoprint.org/en/master/events/index.html). Two new events are available: `plugin_octorant_before_notify` and `plugin_octorant_after_notify`. An `{event}` variable is available to know which event was triggered by OctoRant.
 
-Octorant allows you to launch scripts everytime a message is sent:
-
-- Before sending: perfect for turning some LED on to ensure the webcam will always have enough light when taking the snapshot
-- After sending: perfect for turning the same LED off :)
-
-Script configuration was made voluntarily a little harder, as running scripts exposes much more the host computer. You can find more indications on the [wiki](https://github.com/bchanudet/OctoPrint-Octorant/wiki/Launching-scripts)
-
+> [!WARNING]
+> **Depreciation notice** 
+> 
+> As of v1.3.0+, those settings are now deprecated and will be removed in a further release of the plugin. Documentation is still available on the [wiki](https://github.com/bchanudet/OctoPrint-Octorant/wiki/Launching-scripts)
 
 ## Message format
 
@@ -92,7 +95,7 @@ Messages are regular Discord messages, which means you can use :
     - Role mentions (e.g. `@admin`) must be written `<@&ID>` (notice the `&`), where `ID` must be the [Role ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
     - User mentions (e.g. `@bchanudet`) must be written `<@ID>` (no `&` here), where `ID` is the [User ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
 
-Some events also support variables. 🎇 The list of variables is now directly visible on the configuration page. 
+Some events also support variables. Available variables are listed on the configuration page. 
 
 For more reference, you can go to the [Octoprint documentation on Events](http://docs.octoprint.org/en/master/events/index.html#sec-events-available-events)
 
