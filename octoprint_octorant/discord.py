@@ -87,8 +87,11 @@ class DiscordSender(Thread):
             eventManager().fire("plugin_octorant_before_notify", {"event": message.event_id })
 
             # Grab the media
-            if message.media is not None and message.media.type is not None:
-                files.append(message.media.get())
+            if message.media is not None:
+                f = message.media.get()
+                if f is not None:
+                    files.append(f)
+
 
             # Setup the payload
             payload = {
