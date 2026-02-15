@@ -33,6 +33,7 @@ class DiscordSender(Thread):
 
         self.queue = queue.Queue()
         self.stop_until = 0
+        self.stop = False
 
         self.start()
         self._logger.debug("DiscordSender thread has started")
@@ -61,8 +62,11 @@ class DiscordSender(Thread):
         )
         self.queue.put(message)
 
+    def stop(self):
+        self.stop = True
+
     def run(self):
-        while True:
+        while self.stop == False:
             message: Message = self.queue.get()
             files = list()
 
