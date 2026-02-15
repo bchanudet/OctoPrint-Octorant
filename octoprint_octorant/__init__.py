@@ -17,6 +17,7 @@ from .media import Media
 
 class OctorantPlugin(
     octoprint.plugin.StartupPlugin,
+    octoprint.plugin.ShutdownPlugin,
     octoprint.plugin.SettingsPlugin,
     octoprint.plugin.EventHandlerPlugin,
     octoprint.plugin.AssetPlugin,
@@ -46,7 +47,12 @@ class OctorantPlugin(
         )
 
     def on_after_startup(self):
-        self._logger.info("OctoRant is started!")
+        self._logger.info("OctoRant is started")
+
+    def on_shutdown(self):
+        self._logger.info("OctoRant is shtting down")
+        if self.sender is not None:
+            self.sender.stop()
 
     ##~~ SettingsPlugin mixin
 
