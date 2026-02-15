@@ -9,8 +9,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_startup">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_startup"
-                        data-bind="textInput: events['startup'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_startup"
+                        data-bind="textInput: events['startup'].message"></textarea>
                 </div>
             </div>
             <div class="control-group">
@@ -27,8 +27,8 @@
                     Display as Embed
                 </label>
                 <div class="controls">
-                    <input type="checkbox" id="octorant_embed_startup" class=""
-                        data-bind="checked: events['startup'].embed_used" />
+                    <textarea type="checkbox" id="octorant_embed_startup" class=""
+                        data-bind="checked: events['startup'].embed_used"></textarea>
                 </div>
             </div>
         </div>
@@ -43,8 +43,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_shutdown">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_shutdown"
-                        data-bind="textInput: events['shutdown'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_shutdown"
+                        data-bind="textInput: events['shutdown'].message"></textarea>
                 </div>
             </div>
             <div class="control-group">
@@ -61,8 +61,8 @@
                     Display as Embed
                 </label>
                 <div class="controls">
-                    <input type="checkbox" id="octorant_embed_shutdown" class=""
-                        data-bind="checked: events['shutdown'].embed_used" />
+                    <textarea type="checkbox" id="octorant_embed_shutdown" class=""
+                        data-bind="checked: events['shutdown'].embed_used"></textarea>
                 </div>
             </div>
         </div>

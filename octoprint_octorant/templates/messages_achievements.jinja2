@@ -9,8 +9,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_achievement_unlocked">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_achievement_unlocked"
-                        data-bind="textInput: events['achievement_unlocked'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_achievement_unlocked"
+                        data-bind="textInput: events['achievement_unlocked'].message"></textarea>
                     <span class="help-inline" data-bind="if: events['achievement_unlocked'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['achievement_unlocked'].variables">

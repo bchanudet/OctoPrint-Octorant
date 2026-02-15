@@ -9,8 +9,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_printing_progress">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_printing_progress"
-                        data-bind="textInput: events['printing_progress'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_printing_progress"
+                        data-bind="textInput: events['printing_progress'].message"></textarea>
                     <span class="help-inline" data-bind="if: events['printing_progress'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['printing_progress'].variables">
@@ -51,8 +51,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_transfer_progress">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_transfer_progress"
-                        data-bind="textInput: events['transfer_progress'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_transfer_progress"
+                        data-bind="textInput: events['transfer_progress'].message"></textarea>
                     <span class="help-inline" data-bind="if: events['transfer_progress'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['transfer_progress'].variables">

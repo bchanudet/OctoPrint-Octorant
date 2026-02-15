@@ -9,8 +9,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_timelapse_done">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_timelapse_done"
-                        data-bind="textInput: events['timelapse_done'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_timelapse_done"
+                        data-bind="textInput: events['timelapse_done'].message"></textarea>
                     <span class="help-inline" data-bind="if: events['timelapse_done'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['timelapse_done'].variables">
@@ -51,8 +51,8 @@
             <div class="control-group">
                 <label class="control-label" for="octorant_message_timelapse_failed">{{ _("Message") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-block-level" id="octorant_message_timelapse_failed"
-                        data-bind="textInput: events['timelapse_failed'].message" />
+                    <textarea type="text" class="input-block-level" id="octorant_message_timelapse_failed"
+                        data-bind="textInput: events['timelapse_failed'].message"></textarea>
                     <span class="help-inline" data-bind="if: events['timelapse_failed'].variables().length > 0">
                         <small>Variables:</small>
                         <small data-bind="foreach: events['timelapse_failed'].variables">
