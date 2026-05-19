@@ -1,0 +1,44 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-OctoRant"
+version = "1.4.3"
+description = "Discord plugin for OctoPrint"
+authors = [
+    { name = "Benjamin Chanudet", email = "dev@benjaminchanudet.com" },
+]
+requires-python = ">=3.7,<4"
+dependencies = [
+    "Pillow>=5",
+]
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+octorant = "octoprint_octorant"
+
+[project.urls]
+Homepage = "https://github.com/bchanudet/OctoPrint-Octorant"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_octorant",
+    "octoprint_octorant.*",
+]
